@@ -1,0 +1,57 @@
+openapi: "3.0.3"
+info:
+  title: Processamento de Pagamentos
+  version: "1.0"
+paths:
+  /requisicao:
+    post:
+      description: Envia uma requisição de pagamento
+      responses:
+        "200":
+          description: OK
+        "408":
+          description: Request Timeout
+        "502":
+          description: Bad Gateway
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequisicaoPagamento"
+  /requisicao/{pagamento_id}:
+    get:
+      description: Dado um pagamento_id, retorna o status de pagamento
+      parameters:
+        - in: path
+          name: pagamento_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+
+components:
+  parameters:
+    PagamentoId:
+      in: path
+      name: pagamento_id
+      required: true
+      schema:
+        type: string
+  schemas:
+    RequisicaoPagamento:
+      type: object
+      properties:
+        valor:
+          type: number
+          format: int
+        pagamento_id:
+          type: string
+        cliente_id:
+          type: string
+      required:
+        - valor
+        - pagamento_id
+        - cliente_id
