@@ -9,7 +9,7 @@
 | Componente | Tecnologia | Versão |
 |------------|------------|--------|
 | Linguagem | Java | 21      |
-| Framework | Spring Boot | 3.x    |
+| Framework | Spring Boot | 3.5.13    |
 | Segurança | Spring Security + JWT | -      |
 | Mensageria | Apache Kafka | 3.x    |
 | Resiliência | Resilience4j | 2.x    |
