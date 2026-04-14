@@ -179,3 +179,25 @@ DATABASE_URL_PAGAMENTO: jdbc:postgresql://localhost:5432/pagamentodb
 PROC_PAG_URL: http://procpag:8089
 KAFKA_BOOTSTRAP_SERVERS: kafka:9092
 ```
+
+### Build
+
+#### Compile all modules
+
+`mvn clean compile`
+
+#### Compile with tests skipped (faster)
+
+`mvn clean compile -DskipTests`
+
+##### Build all modules (including tests)
+
+`mvn clean package`
+
+#### Build without running tests
+
+`mvn clean package -DskipTests`
+
+#### Build specific module
+
+`mvn clean package -pl auth-service -am`
