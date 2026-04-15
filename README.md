@@ -182,22 +182,10 @@ KAFKA_BOOTSTRAP_SERVERS: kafka:9092
 
 ### Build
 
-#### Compile all modules
+#### Compila todos os modulos
 
 `mvn clean compile`
 
-#### Compile with tests skipped (faster)
-
-`mvn clean compile -DskipTests`
-
-##### Build all modules (including tests)
-
-`mvn clean package`
-
-#### Build without running tests
-
-`mvn clean package -DskipTests`
-
-#### Build specific module
+#### Compila um modulo em especifico
 
 `mvn clean package -pl auth-service -am`
