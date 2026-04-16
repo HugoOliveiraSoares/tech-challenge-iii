@@ -22,7 +22,7 @@
 src/
 ├── main/
 │   ├── java/
-│   │   └── com/restaurante/
+│   │   └── br/com/fiap/
 │   │       └── [servico]/
 │   │           ├── controller/     # Endpoints REST
 │   │           ├── usecase/        # Casos de uso
