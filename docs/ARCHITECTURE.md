@@ -24,13 +24,20 @@ src/
 │   ├── java/
 │   │   └── br/com/fiap/
 │   │       └── [servico]/
-│   │           ├── controller/     # Endpoints REST
-│   │           ├── usecase/        # Casos de uso
-│   │           ├── domain/         # Entidades e regras de negócio
-│   │           ├── infra/          # Configurações e adaptadores
-│   │           │   ├── kafka/
-│   │           │   ├── security/
-│   │           │   └── repository/
+│   │           ├── core/
+│   │           │   ├── domain/         # Entidades e regras de negócio
+│   │           │   ├── dto/            # DTO's para transicionar entre camadas
+│   │           │   ├── exception/      # Exception's proprias
+│   │           │   ├── gateway/        # Acesso a dados
+│   │           │   ├── usecase/        # Casos de uso
+│   │           ├── infra/              # Configurações e adaptadores
+│   │           │   ├── controller/     # Endpoints REST
+│   │           │   ├── gateway/
+│   │           │   │   ├── db/         # Acesso a banco de dados
+│   │           │   │   │   └── repository/
+│   │           │   │   ├── http/       # API's externas
+│   │           │   │   └── kafka/
+│   │           │   └── security/       # Spring Security
 │   │           └── [servico]Application.java
 │   └── resources/
 │       └── application.yml
