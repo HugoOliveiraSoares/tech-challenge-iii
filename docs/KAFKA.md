@@ -17,11 +17,13 @@ O sistema utiliza Apache Kafka para comunicação assíncrona entre os serviços
 ## Evento: pedido.criado
 
 ### Tópico
+
 ```
 pedido-criado
 ```
 
 ### Schema
+
 ```json
 {
   "eventType": "PEDIDO_CRIADO",
@@ -41,6 +43,7 @@ pedido-criado
 ```
 
 ### Fluxo
+
 ```mermaid
 sequenceDiagram
     participant PS as pedido-service
@@ -58,11 +61,13 @@ sequenceDiagram
 ## Evento: pagamento.aprovado
 
 ### Tópico
+
 ```
 pagamento-aprovado
 ```
 
 ### Schema
+
 ```json
 {
   "eventType": "PAGAMENTO_APROVADO",
@@ -74,6 +79,7 @@ pagamento-aprovado
 ```
 
 ### Fluxo
+
 ```mermaid
 sequenceDiagram
     participant PgS as pagamento-service
@@ -91,11 +97,13 @@ sequenceDiagram
 ## Evento: pagamento.pendente
 
 ### Tópico
+
 ```
 pagamento-pendente
 ```
 
 ### Schema
+
 ```json
 {
   "eventType": "PAGAMENTO_PENDENTE",
@@ -107,6 +115,7 @@ pagamento-pendente
 ```
 
 ### Fluxo (Resiliência)
+
 ```mermaid
 sequenceDiagram
     participant PgS as pagamento-service
@@ -169,6 +178,7 @@ spring:
 ## idempotência
 
 Para garantir idempotência:
+
 - Sempre verificar se o pedido já foi processado antes de aplicar mudanças
 - Usar IDempotency-Key nos headers
 - O status do pedido só pode mudar para frente (nunca reverso)
@@ -178,35 +188,38 @@ Para garantir idempotência:
 ## Contract (Java Classes)
 
 ### PedidoCriadoEvent
+
 ```java
 public record PedidoCriadoEvent(
     String eventType,
-    UUID pedidoId,
-    UUID clienteId,
+    String pedidoId,
+    String clienteId,
     BigDecimal valorTotal,
     List<PedidoItem> itens,
-    Instant timestamp
+    LocaDateTime timestamp
 ) {}
 ```
 
 ### PagamentoAprovadoEvent
+
 ```java
 public record PagamentoAprovadoEvent(
     String eventType,
-    UUID pedidoId,
-    UUID pagamentoId,
+    String pedidoId,
+    String pagamentoId,
     BigDecimal valor,
-    Instant timestamp
+    LocaDateTime timestamp
 ) {}
 ```
 
 ### PagamentoPendenteEvent
+
 ```java
 public record PagamentoPendenteEvent(
     String eventType,
-    UUID pedidoId,
-    UUID pagamentoId,
+    String pedidoId,
+    String pagamentoId,
     String motivo,
-    Instant timestamp
+    LocaDateTime timestamp
 ) {}
 ```
