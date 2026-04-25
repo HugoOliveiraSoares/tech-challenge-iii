@@ -7,6 +7,8 @@ import br.com.fiap.auth.infra.gateway.db.repository.UserJPARepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 @AllArgsConstructor
 public class UserRepositoryAdapter implements UserGateway {
@@ -18,6 +20,12 @@ public class UserRepositoryAdapter implements UserGateway {
         var saved = userJPARepository.save(UserJPAMapper.toEntity(user));
 
         return UserJPAMapper.toDomain(saved);
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return userJPARepository.findByEmail(email)
+                .map(UserJPAMapper::toDomain);
     }
 
     @Override
