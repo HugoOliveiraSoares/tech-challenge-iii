@@ -1,11 +1,11 @@
 package br.com.fiap.payment.core.domain;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public record PaymentPendingEvent(
-        String eventType,
-        String pedidoId,
+public record PaymentEvent(
+        String orderId,
         String paymentId,
-        String reason,
+        BigDecimal amount,
         LocalDateTime timestamp) {
 }
