@@ -3,6 +3,7 @@ package br.com.fiap.auth.infra.controller;
 import br.com.fiap.auth.core.dto.CreateUserInput;
 import br.com.fiap.auth.core.dto.CreateUserOutput;
 import br.com.fiap.auth.core.dto.UserCredentialsInput;
+import br.com.fiap.auth.infra.controller.dto.LoginResponse;
 import br.com.fiap.auth.infra.security.JwtService;
 import br.com.fiap.auth.infra.security.dto.AuthenticatedUser;
 import br.com.fiap.auth.infra.service.UserService;
@@ -31,15 +32,15 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> authenticateUser(@Valid @RequestBody UserCredentialsInput credentials){
+    public ResponseEntity<LoginResponse> authenticateUser(@Valid @RequestBody UserCredentialsInput credentials){
         var authUser = userService.validateUserCredentials(credentials);
         var token = jwtService.generateToken(authUser);
 
-        return ResponseEntity.ok(token);
+        return ResponseEntity.ok(new LoginResponse(token));
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> me(@AuthenticationPrincipal AuthenticatedUser user){
+    public ResponseEntity<AuthenticatedUser> me(@AuthenticationPrincipal AuthenticatedUser user){
         return ResponseEntity.ok(user);
     }
 }
