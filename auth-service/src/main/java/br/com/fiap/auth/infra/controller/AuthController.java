@@ -8,7 +8,7 @@ import br.com.fiap.auth.infra.security.JwtService;
 import br.com.fiap.auth.infra.security.dto.AuthenticatedUser;
 import br.com.fiap.auth.infra.service.UserService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 @RestController
-@RequiredArgsConstructor
+@AllArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
 

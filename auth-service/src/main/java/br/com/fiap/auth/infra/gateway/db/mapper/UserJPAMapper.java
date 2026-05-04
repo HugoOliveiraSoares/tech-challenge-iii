@@ -22,7 +22,7 @@ public class UserJPAMapper {
                 saved.getName(),
                 saved.getEmail(),
                 saved.getPassword(),
-                saved.getRole(),
+                saved.getRole().name(),
                 saved.getCreatedAt());
     }
 }

@@ -1,12 +1,17 @@
 package br.com.fiap.auth.core.dto;
 
-import br.com.fiap.auth.core.domain.UserRole;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record CreateUserInput(@NotNull String name,
-                              @NotNull @Email String email,
-                              @NotNull @Size(min = 6) String password,
-                              @NotNull UserRole role) {
+public record CreateUserInput(@NotBlank
+                              String name,
+                              @NotBlank
+                              @Email
+                              String email,
+                              @NotBlank
+                              @Size(min = 6)
+                              String password,
+                              @NotBlank
+                              String role) {
 }
