@@ -2,13 +2,13 @@ package br.com.fiap.payment.infra.gateway.db.entity;
 
 import java.math.BigDecimal;
 
-import org.springframework.data.annotation.Id;
-
 import br.com.fiap.payment.core.domain.PaymentStatus;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,7 +29,7 @@ public class PaymentEntity {
     private String orderId;
     private String clientId;
     private BigDecimal totalAmount;
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
 
 }
