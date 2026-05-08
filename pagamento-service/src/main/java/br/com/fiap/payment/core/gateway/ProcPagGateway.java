@@ -4,6 +4,6 @@ import br.com.fiap.payment.core.domain.ProcPagRequest;
 
 public interface ProcPagGateway {
 
-    String requisicao(ProcPagRequest request);
+    String processarPagamento(ProcPagRequest request);
 
 }

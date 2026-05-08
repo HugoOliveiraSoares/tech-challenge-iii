@@ -3,30 +3,34 @@ package br.com.fiap.payment.infra.gateway.http;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientResponseException;
 
 import br.com.fiap.payment.core.domain.ProcPagRequest;
 import br.com.fiap.payment.core.gateway.ProcPagGateway;
 import br.com.fiap.payment.infra.gateway.http.dto.ProcPagHttpRequest;
 import br.com.fiap.payment.infra.gateway.http.dto.ProcPagHttpResponse;
+import br.com.fiap.payment.infra.gateway.http.exception.ExternalServiceUnavailableException;
+import br.com.fiap.payment.infra.gateway.http.exception.PaymentProcessingException;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Gateway HTTP para integração com o serviço externo Procpag.
+ * Implementa padrão de retry com fallback para tolerância a falhas.
+ */
 @Slf4j
 @Service
-public class ProcPagHttpClientGateway implements ProcPagGateway {
+public class ProcPagHttpGateway implements ProcPagGateway {
 
     private final RestClient restClient;
 
-    public ProcPagHttpClientGateway(@Value("${procpag.url}") String procpagUrl) {
-        this.restClient = RestClient.builder()
-                .baseUrl(procpagUrl)
-                .build();
+    public ProcPagHttpGateway(RestClient.Builder restClientBuilder,
+            @Value("${procpag.url}") String procpagUrl) {
+        this.restClient = restClientBuilder.baseUrl(procpagUrl).build();
     }
 
     @Override
     @Retry(name = "procPagRetry", fallbackMethod = "requisicaoFallback")
-    public String requisicao(ProcPagRequest request) {
+    public String processarPagamento(ProcPagRequest request) {
         return postHttpRequest(request);
     }
 
@@ -45,18 +49,22 @@ public class ProcPagHttpClientGateway implements ProcPagGateway {
                     .retrieve()
                     .body(ProcPagHttpResponse.class);
 
-            if (response != null && response.status() != null) {
-                return response.status();
+            if (response == null) {
+                throw new PaymentProcessingException("Resposta nula do Procpag");
             }
-            return "";
-        } catch (RestClientResponseException ex) {
-            log.error("Error calling procpag: {} - {}", ex.getStatusCode(), ex.getMessage());
-            throw new RuntimeException("Failed to process payment: " + ex.getStatusCode(), ex);
+            if (response.status() == null) {
+                throw new PaymentProcessingException("Status nulo na resposta do Procpag: " + response);
+            }
+            return response.status();
+
+        } catch (Exception ex) {
+            log.error("Error calling procpag: {}", ex.getMessage());
+            throw new PaymentProcessingException("Falha no processamento do pagamento", ex);
         }
     }
 
     public String requisicaoFallback(ProcPagRequest request, Exception ex) {
-        log.error("Fallback triggered for procpag request: {}", ex.getMessage());
-        return postHttpRequest(request);
+        log.error("Fallback acionado para pagamento {}: {}", request.getPaymentId(), ex.getMessage());
+        throw new ExternalServiceUnavailableException("Serviço Procpag indisponível", ex);
     }
 }
