@@ -1,6 +1,4 @@
-package br.com.fiap.payment.infra.gateway.http.exception;
-
-import br.com.fiap.payment.core.exception.SystemBaseException;
+package br.com.fiap.payment.core.exception;
 
 public class ExternalServiceUnavailableException extends SystemBaseException {
 
