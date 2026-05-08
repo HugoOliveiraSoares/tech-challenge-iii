@@ -9,4 +9,8 @@ public class SystemBaseException extends RuntimeException {
         super(message);
     }
 
+    public SystemBaseException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }
