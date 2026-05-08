@@ -5,11 +5,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import br.com.fiap.payment.core.domain.ProcPagRequest;
+import br.com.fiap.payment.core.exception.ExternalServiceUnavailableException;
+import br.com.fiap.payment.core.exception.PaymentProcessingException;
 import br.com.fiap.payment.core.gateway.ProcPagGateway;
 import br.com.fiap.payment.infra.gateway.http.dto.ProcPagHttpRequest;
 import br.com.fiap.payment.infra.gateway.http.dto.ProcPagHttpResponse;
-import br.com.fiap.payment.infra.gateway.http.exception.ExternalServiceUnavailableException;
-import br.com.fiap.payment.infra.gateway.http.exception.PaymentProcessingException;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 
