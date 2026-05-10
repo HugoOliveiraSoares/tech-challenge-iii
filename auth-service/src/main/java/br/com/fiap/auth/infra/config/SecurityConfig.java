@@ -1,6 +1,5 @@
 package br.com.fiap.auth.infra.config;
 
-import br.com.fiap.auth.infra.security.JwtAuthFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -17,21 +16,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
     @Qualifier("customAuthenticationEntryPoint")
     private final AuthenticationEntryPoint authEntryPoint;
     @Qualifier("customAccessDeniedHandler")
     private final AccessDeniedHandler accessDeniedHandler;
 
     @Autowired
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter,  AuthenticationEntryPoint authEntryPoint, AccessDeniedHandler accessDeniedHandler) {
-        this.jwtAuthFilter = jwtAuthFilter;
+    public SecurityConfig(AuthenticationEntryPoint authEntryPoint, AccessDeniedHandler accessDeniedHandler) {
         this.authEntryPoint = authEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
     }
@@ -50,9 +46,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .anyRequest()
                         .authenticated())
-                .addFilterBefore(
-                        jwtAuthFilter, UsernamePasswordAuthenticationFilter.class
-                )
                 .build();
     }
 
