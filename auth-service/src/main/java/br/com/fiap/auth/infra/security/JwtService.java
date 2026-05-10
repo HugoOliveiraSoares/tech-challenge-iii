@@ -1,22 +1,21 @@
 package br.com.fiap.auth.infra.security;
 
 import br.com.fiap.auth.core.dto.AuthUserOutput;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Service
+@RequiredArgsConstructor
 public class JwtService {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final RSAKeyProvider rsaKeyProvider;
+
+    @Value("${jwt.issuer}")
+    private String issuer;
 
     @Value("${jwt.expiration}")
     private long expiration;
@@ -27,45 +26,11 @@ public class JwtService {
 
         return Jwts.builder()
                 .subject(user.userId().toString())
+                .issuer(issuer)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .claim("role", user.role())
-                .signWith(getSignInKey())
+                .signWith(rsaKeyProvider.getPrivateKey(), Jwts.SIG.RS256)
                 .compact();
-    }
-
-    public boolean isTokenValid(String token) {
-        try{
-            Claims claims = extractAllClaims(token);
-            return !isTokenExpired(claims);
-
-        } catch(JwtException e){
-            return false;
-        }
-    }
-
-    private boolean isTokenExpired(Claims claims) {
-        return claims.getExpiration().before(new Date());
-    }
-
-    public String extractSubject(String token) {
-        return extractAllClaims(token).getSubject();
-    }
-
-    public String extractRole(String token) {
-        return extractAllClaims(token).get("role", String.class);
-    }
-
-    private SecretKey getSignInKey() {
-        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSignInKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
     }
 }

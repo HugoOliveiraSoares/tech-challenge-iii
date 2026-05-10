@@ -21,7 +21,6 @@ public class RSAKeyProvider {
 
     @Value("classpath:keys/app.pub")
     private Resource publicKeyResource;
-
     @Value("classpath:keys/app.key")
     private Resource privateKeyResource;
 
