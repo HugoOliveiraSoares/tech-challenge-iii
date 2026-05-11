@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -40,7 +41,12 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<AuthenticatedUser> me(@AuthenticationPrincipal AuthenticatedUser user){
-        return ResponseEntity.ok(user);
+    public ResponseEntity<AuthenticatedUser> me(@AuthenticationPrincipal Jwt jwt){
+        var authenticatedUser = new AuthenticatedUser(
+                jwt.getSubject(),
+                jwt.getClaimAsString("role")
+        );
+
+        return ResponseEntity.ok(authenticatedUser);
     }
 }
