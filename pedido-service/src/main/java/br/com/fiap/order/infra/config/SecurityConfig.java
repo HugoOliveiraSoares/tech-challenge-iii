@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
+/** Protege a API com JWT (chaves públicas do auth-service via JWKS). */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {

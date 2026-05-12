@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 
+/** Item enviado na criação do pedido. */
 public record CreateOrderItemRequest(
         @NotNull Long productId,
         @NotBlank String name,

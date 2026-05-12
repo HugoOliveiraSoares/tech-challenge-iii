@@ -23,6 +23,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+/** API REST de pedidos; exige JWT em todas as rotas. */
 @RestController
 @RequestMapping("/pedidos")
 @RequiredArgsConstructor
@@ -34,6 +35,7 @@ public class OrderController {
     private final AuthenticatedUserGateway authenticatedUserGateway;
     private final OrderResponseMapper orderResponseMapper;
 
+    /** Cria pedido com ID do cliente extraído do token. */
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody CreateOrderRequest request) {
         UUID customerId = authenticatedUserGateway.getAuthenticatedUserId();
@@ -52,6 +54,7 @@ public class OrderController {
         return ResponseEntity.created(location).body(response);
     }
 
+    /** Consulta um pedido (apenas se for do cliente logado). */
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponse> getOrderById(@PathVariable UUID id) {
         UUID customerId = authenticatedUserGateway.getAuthenticatedUserId();
@@ -59,6 +62,7 @@ public class OrderController {
         return ResponseEntity.ok(orderResponseMapper.toResponse(order));
     }
 
+    /** Lista todos os pedidos do cliente autenticado. */
     @GetMapping
     public ResponseEntity<OrderListResponse> listCustomerOrders() {
         UUID customerId = authenticatedUserGateway.getAuthenticatedUserId();

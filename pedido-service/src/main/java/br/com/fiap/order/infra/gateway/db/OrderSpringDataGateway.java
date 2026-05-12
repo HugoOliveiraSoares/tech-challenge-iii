@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/** Adapter JPA: implementa OrderGateway usando PostgreSQL. */
 @Component
 @RequiredArgsConstructor
 public class OrderSpringDataGateway implements OrderGateway {
@@ -41,6 +42,7 @@ public class OrderSpringDataGateway implements OrderGateway {
                 .toList();
     }
 
+    /** Atualiza pedido existente sem duplicar itens no banco. */
     private OrderEntity merge(OrderEntity existing, Order order) {
         existing.setStatus(order.getStatus());
         existing.setTotalAmount(order.getTotalAmount());

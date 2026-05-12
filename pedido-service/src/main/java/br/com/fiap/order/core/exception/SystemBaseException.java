@@ -2,6 +2,7 @@ package br.com.fiap.order.core.exception;
 
 import lombok.Getter;
 
+/** Exceção base com código HTTP e código de erro para a API. */
 @Getter
 public class SystemBaseException extends RuntimeException {
     private final String code;

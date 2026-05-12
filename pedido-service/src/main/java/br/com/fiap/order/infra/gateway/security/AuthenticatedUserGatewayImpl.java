@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+/** Lê o subject do JWT (UUID do cliente) do contexto de segurança. */
 @Component
 public class AuthenticatedUserGatewayImpl implements AuthenticatedUserGateway {
 

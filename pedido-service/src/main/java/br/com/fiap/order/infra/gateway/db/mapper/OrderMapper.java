@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/** Converte entre Order (domínio) e OrderEntity (banco). */
 @Component
 public class OrderMapper {
 

@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+/** Entidade de domínio: pedido com itens, total calculado e status. */
 @Data
 public class Order {
     private UUID id;
@@ -17,6 +18,7 @@ public class Order {
     private OrderStatus status;
     private LocalDateTime createdAt;
 
+    /** Cria pedido com status CREATED e total somado dos itens. */
     public Order(UUID id, UUID customerId, String restaurantId, List<OrderItem> items) {
         this.id = id;
         this.customerId = customerId;
@@ -33,10 +35,12 @@ public class Order {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    /** Atualiza status para PAGO (evento pagamento-aprovado). */
     public void markAsPaid() {
         this.status = OrderStatus.PAID;
     }
 
+    /** Atualiza status para pendente (evento pagamento-pendente). */
     public void markAsPendingPayment() {
         this.status = OrderStatus.PENDING_PAYMENT;
     }

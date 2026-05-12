@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.UUID;
 
+/** Busca pedido e garante que pertence ao cliente do token JWT. */
 @RequiredArgsConstructor
 public class GetOrderByIdUseCaseImpl implements GetOrderByIdUseCase {
 

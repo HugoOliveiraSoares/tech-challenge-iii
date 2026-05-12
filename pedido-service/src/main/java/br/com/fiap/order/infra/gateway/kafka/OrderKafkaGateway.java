@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+/** Producer Kafka: publica OrderEvent no tópico pedido-criado. */
 @Slf4j
 @Component
 @RequiredArgsConstructor

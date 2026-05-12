@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
 
+/** Atualiza status para PENDING_PAYMENT; ignora eventos duplicados ou tardios. */
 @Slf4j
 @RequiredArgsConstructor
 public class MarkOrderAsPendingPaymentUseCaseImpl implements MarkOrderAsPendingPaymentUseCase {

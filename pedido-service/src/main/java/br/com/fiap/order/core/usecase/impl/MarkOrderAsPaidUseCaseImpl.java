@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
 
+/** Atualiza status para PAID com idempotência (ignora se já estiver pago). */
 @Slf4j
 @RequiredArgsConstructor
 public class MarkOrderAsPaidUseCaseImpl implements MarkOrderAsPaidUseCase {

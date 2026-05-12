@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import lombok.Getter;
 
+/** Item do pedido: produto, quantidade, preço unitário e subtotal. */
 @Getter
 public class OrderItem {
     private Long productId;

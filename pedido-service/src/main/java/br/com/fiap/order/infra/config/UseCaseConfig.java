@@ -15,6 +15,7 @@ import br.com.fiap.order.core.usecase.impl.MarkOrderAsPendingPaymentUseCaseImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/** Registra implementações dos casos de uso como beans Spring (core sem @Service). */
 @Configuration
 public class UseCaseConfig {
 

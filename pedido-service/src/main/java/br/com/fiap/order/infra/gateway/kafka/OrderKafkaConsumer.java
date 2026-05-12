@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+/** Consumer Kafka: escuta pagamento-aprovado e pagamento-pendente para atualizar status. */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class OrderKafkaConsumer {
     private final MarkOrderAsPaidUseCase markOrderAsPaidUseCase;
     private final MarkOrderAsPendingPaymentUseCase markOrderAsPendingPaymentUseCase;
 
+    /** Pagamento confirmado → pedido vira PAGO. */
     @KafkaListener(
             topics = "${kafka.topic.pagamento-aprovado}",
             groupId = "${spring.kafka.consumer.group-id}",
@@ -29,6 +31,7 @@ public class OrderKafkaConsumer {
         ack.acknowledge();
     }
 
+    /** Pagamento falhou ou está em retry → pedido vira PENDENTE_PAGAMENTO. */
     @KafkaListener(
             topics = "${kafka.topic.pagamento-pendente}",
             groupId = "${spring.kafka.consumer.group-id}",

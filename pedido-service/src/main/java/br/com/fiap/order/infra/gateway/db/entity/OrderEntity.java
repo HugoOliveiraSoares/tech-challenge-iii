@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/** Mapeamento JPA da tabela orders (cabeçalho do pedido). */
 @Entity
 @Getter
 @Setter

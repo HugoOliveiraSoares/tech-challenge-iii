@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.UUID;
 
+/** Valida, cria pedido, salva no banco e publica evento no Kafka. */
 @RequiredArgsConstructor
 public class CreateOrderUseCaseImpl implements CreateOrderUseCase {
 

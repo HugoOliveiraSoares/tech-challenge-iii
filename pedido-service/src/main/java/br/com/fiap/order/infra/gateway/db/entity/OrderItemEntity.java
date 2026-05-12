@@ -13,6 +13,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
+/** Mapeamento JPA da tabela order_items (linhas do pedido). */
 @Entity
 @Getter
 @Setter

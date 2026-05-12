@@ -1,3 +1,4 @@
+-- Cabeçalho do pedido (cliente, restaurante, total, status)
 CREATE TABLE orders (
     id UUID PRIMARY KEY,
     customer_id UUID NOT NULL,
@@ -8,6 +9,7 @@ CREATE TABLE orders (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Itens vinculados ao pedido (cascade delete)
 CREATE TABLE order_items (
     id BIGSERIAL PRIMARY KEY,
     order_id UUID NOT NULL REFERENCES orders (id) ON DELETE CASCADE,

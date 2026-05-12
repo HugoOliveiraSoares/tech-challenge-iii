@@ -24,6 +24,7 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 import java.util.HashMap;
 import java.util.Map;
 
+/** Configura producer (pedido-criado) e consumer (eventos de pagamento). */
 @Configuration
 @EnableKafka
 public class KafkaConfig {
@@ -44,6 +45,7 @@ public class KafkaConfig {
         return props;
     }
 
+    /** Producer para publicar pedido-criado. */
     @Bean
     public ProducerFactory<String, OrderEvent> orderEventProducerFactory() {
         return new DefaultKafkaProducerFactory<>(producerConfig());
@@ -68,6 +70,7 @@ public class KafkaConfig {
         return props;
     }
 
+    /** Consumer para eventos de pagamento (aprovado / pendente). */
     @Bean
     public ConsumerFactory<String, PaymentEvent> paymentConsumerFactory() {
         return new DefaultKafkaConsumerFactory<>(paymentConsumerConfig());

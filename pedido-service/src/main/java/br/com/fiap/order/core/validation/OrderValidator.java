@@ -12,8 +12,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+/** Regras de validação de pedido, itens, preços e transições de status. */
 public final class OrderValidator {
 
+    /** Limites usados nas validações de criação do pedido. */
     public static final int MAX_ITEMS_PER_ORDER = 50;
     public static final int MAX_ITEM_QUANTITY = 999;
     public static final int MAX_TEXT_LENGTH = 255;
@@ -129,10 +131,12 @@ public final class OrderValidator {
         }
     }
 
+    /** CREATED ou PENDING_PAYMENT podem virar PAGO. */
     public static boolean canTransitionToPaid(OrderStatus currentStatus) {
         return currentStatus == OrderStatus.CREATED || currentStatus == OrderStatus.PENDING_PAYMENT;
     }
 
+    /** Somente CREATED pode virar pendente de pagamento. */
     public static boolean canTransitionToPendingPayment(OrderStatus currentStatus) {
         return currentStatus == OrderStatus.CREATED;
     }

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.UUID;
 
+/** Retorna histórico de pedidos do cliente, ordenado por data. */
 @RequiredArgsConstructor
 public class ListCustomerOrdersUseCaseImpl implements ListCustomerOrdersUseCase {
 

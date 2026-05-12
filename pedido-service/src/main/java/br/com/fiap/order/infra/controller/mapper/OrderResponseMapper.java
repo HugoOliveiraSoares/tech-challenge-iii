@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/** Converte entidades de domínio para DTOs da API (inclui nomes de status legíveis). */
 @Component
 public class OrderResponseMapper {
 
@@ -49,6 +50,7 @@ public class OrderResponseMapper {
                 .toList();
     }
 
+    /** Traduz enum interno para o status exibido na API (contrato do PDF). */
     public String toApiStatus(OrderStatus status) {
         return switch (status) {
             case CREATED -> "AGUARDANDO_PAGAMENTO";

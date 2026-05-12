@@ -5,6 +5,7 @@ import br.com.fiap.order.core.domain.OrderItem;
 import java.util.List;
 import java.util.UUID;
 
+/** Caso de uso: criar pedido, persistir e publicar pedido-criado. */
 public interface CreateOrderUseCase {
     Order execute(UUID customerId, String restaurantId, List<OrderItem> items);
 }
