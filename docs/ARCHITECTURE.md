@@ -24,8 +24,8 @@ src/
 │   ├── java/
 │   │   └── br/com/fiap/
 │   │       └── [servico]/
-│   │           ├── core/
-│   │           │   ├── domain/         # Entidades e regras de negócio
+│   │           ├── br.com.fiap.order.core/
+│   │           │   ├── br.com.fiap.order.core.domain/         # Entidades e regras de negócio
 │   │           │   ├── dto/            # DTO's para transicionar entre camadas
 │   │           │   ├── exception/      # Exception's proprias
 │   │           │   ├── gateway/        # Acesso a dados
