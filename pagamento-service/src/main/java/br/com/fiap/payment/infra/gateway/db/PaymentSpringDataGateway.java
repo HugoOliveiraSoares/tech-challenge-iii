@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 import br.com.fiap.payment.core.domain.Payment;
+import br.com.fiap.payment.core.domain.PaymentStatus;
 import br.com.fiap.payment.core.gateway.PaymentGateway;
 import br.com.fiap.payment.infra.gateway.db.mapper.PaymentMapper;
 import br.com.fiap.payment.infra.gateway.db.repository.PaymentEntityRepository;
@@ -17,9 +18,9 @@ public class PaymentSpringDataGateway implements PaymentGateway {
     private final PaymentEntityRepository paymentEntityRepository;
 
     @Override
-    public Optional<Payment> findPaymentByOrderId(String orderId) {
+    public Optional<Payment> findPaymentByOrderIdAndApproved(String orderId) {
         return paymentEntityRepository
-                .findPaymentByOrderId(orderId)
+                .findPaymentByOrderIdAndPaymentStatus(orderId, PaymentStatus.APPROVED)
                 .map(PaymentMapper::toDomain);
 
     }

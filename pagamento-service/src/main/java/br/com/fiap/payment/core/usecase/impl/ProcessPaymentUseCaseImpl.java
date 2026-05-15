@@ -48,7 +48,7 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
         log.info("Processando pagamento de pedido {}", event.orderId());
 
         paymentGateway
-                .findPaymentByOrderId(event.orderId())
+                .findPaymentByOrderIdAndApproved(event.orderId())
                 .ifPresent(existing -> {
                     throw new OrderAlreadyCreatedException(
                             "Pedido com id {} já foi criado".formatted(event.orderId()));
@@ -107,7 +107,7 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
 
     private PaymentStatus mapProcpagStatus(String procpagStatus) {
         return switch (procpagStatus.toUpperCase()) {
-            case "APPROVED" -> PaymentStatus.APPROVED;
+            case "ACCEPTED" -> PaymentStatus.APPROVED;
             case "PENDING" -> PaymentStatus.PENDING;
             default -> {
                 log.warn("Status desconhecido Procpag: {}, assumindo REJECTED", procpagStatus);
