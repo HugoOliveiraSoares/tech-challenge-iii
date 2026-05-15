@@ -1,28 +1,19 @@
+x-postgres: &postgres-base
+  image: postgres:15
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U postgres -d $$POSTGRES_DB"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+  networks:
+    - fase3net
+
 services:
   procpag:
     image: docker.io/erickemprobr/procpag:latest
     platform: linux/amd64
     ports:
       - "8089:8089"
-    networks:
-      - fase3net
-
-  postgres:
-    image: postgres:15
-    container_name: pagament-db
-    environment:
-      POSTGRES_DB: pagamentodb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - fase3net
 
@@ -92,8 +83,46 @@ services:
     networks:
       - fase3net
 
+  auth-db:
+    <<: *postgres-base
+    container_name: auth-db
+    environment:
+      POSTGRES_USER: authdb
+      POSTGRES_PASSWORD: authdb
+      POSTGRES_DB: authdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth_data:/var/lib/postgresql/data
+
+  pedido-db:
+    <<: *postgres-base
+    container_name: pedido-db
+    environment:
+      POSTGRES_USER: pedidodb
+      POSTGRES_PASSWORD: pedidodb
+      POSTGRES_DB: pedidodb
+    ports:
+      - "5433:5432"
+    volumes:
+      - pedido_data:/var/lib/postgresql/data
+
+  pagamento-db:
+    <<: *postgres-base
+    container_name: pagamento-db
+    environment:
+      POSTGRES_USER: pagamentodb
+      POSTGRES_PASSWORD: pagamentodb
+      POSTGRES_DB: pagamentodb
+    ports:
+      - "5434:5432"
+    volumes:
+      - pagamento_data:/var/lib/postgresql/data
+
 volumes:
-  postgres_data:
+  auth_data:
+  pedido_data:
+  pagamento_data:
   kafka_data:
 
 networks:
