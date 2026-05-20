@@ -2,6 +2,7 @@ package br.com.fiap.payment.core.usecase.impl;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -47,12 +48,13 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
 
         log.info("Processando pagamento de pedido {}", event.orderId());
 
-        paymentGateway
-                .findPaymentByOrderIdAndApproved(event.orderId())
-                .ifPresent(existing -> {
-                    throw new OrderAlreadyCreatedException(
-                            "Pedido com id {} já foi criado".formatted(event.orderId()));
-                });
+        Optional<Payment> paymentByOrderIdAndApproved = paymentGateway
+                .findPaymentByOrderIdAndApproved(event.orderId());
+
+        if (paymentByOrderIdAndApproved.isPresent()) {
+            log.warn("Pedido com id {} já foi criado", event.orderId());
+            return;
+        }
 
         var payment = new Payment(
                 event.orderId(),
