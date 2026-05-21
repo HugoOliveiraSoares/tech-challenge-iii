@@ -127,6 +127,11 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
     }
 
     private void handleFailure(Payment payment, Exception cause) {
+        if (payment.getPaymentStatus() == PaymentStatus.APPROVED) {
+            log.warn("Pagamento {} já aprovado, ignorando tentativa de reverter para PENDING",
+                    payment.getPaymentId());
+            return;
+        }
         payment.changeStatusTo(PaymentStatus.PENDING);
         paymentGateway.save(payment);
 

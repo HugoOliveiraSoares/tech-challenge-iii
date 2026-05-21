@@ -30,8 +30,12 @@ public class Payment {
         this.setPaymentStatus(paymentStatus);
     }
 
-    public void changeStatusTo(PaymentStatus status) {
-        this.setPaymentStatus(status);
+    public void changeStatusTo(PaymentStatus newStatus) {
+        if (this.paymentStatus == PaymentStatus.APPROVED) {
+            throw new IllegalStateException(
+                    "Status cannot transition from APPROVED to " + newStatus);
+        }
+        this.setPaymentStatus(newStatus);
     }
 
     private void setPaymentId(Long paymentId) {
