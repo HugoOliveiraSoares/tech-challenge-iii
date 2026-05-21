@@ -68,7 +68,7 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
 
             var procPagRequest = new ProcPagRequest(
                     paymentSaved.getPaymentId(),
-                    paymentSaved.getOrderId(),
+                    paymentSaved.getClientId(),
                     paymentSaved.getTotalAmount());
 
             var procpagStatus = procPagGateway.processarPagamento(procPagRequest);
