@@ -1,5 +1,5 @@
 CREATE TABLE payment (
-    payment_id BIGSERIAL PRIMARY KEY,
+    payment_id UUID PRIMARY KEY,
     order_id VARCHAR(255) NOT NULL UNIQUE,
     client_id VARCHAR(255) NOT NULL,
     total_amount DECIMAL(19,2) NOT NULL,

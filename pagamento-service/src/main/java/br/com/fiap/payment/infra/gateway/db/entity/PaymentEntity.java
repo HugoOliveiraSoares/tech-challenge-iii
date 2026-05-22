@@ -1,13 +1,12 @@
 package br.com.fiap.payment.infra.gateway.db.entity;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import br.com.fiap.payment.core.domain.PaymentStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -24,8 +23,7 @@ import lombok.Setter;
 public class PaymentEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long paymentId;
+    private UUID paymentId;
     private String orderId;
     private String clientId;
     private BigDecimal totalAmount;

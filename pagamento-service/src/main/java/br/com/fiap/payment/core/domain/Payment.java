@@ -1,13 +1,14 @@
 package br.com.fiap.payment.core.domain;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import lombok.Getter;
 
 @Getter
 public class Payment {
 
-    private Long paymentId;
+    private UUID paymentId;
     private String orderId;
     private String clientId;
     private BigDecimal totalAmount;
@@ -21,7 +22,7 @@ public class Payment {
         this.setPaymentStatus(paymentStatus);
     }
 
-    public Payment(Long paymentId, String orderId, String clientId, BigDecimal totalAmount,
+    public Payment(UUID paymentId, String orderId, String clientId, BigDecimal totalAmount,
             PaymentStatus paymentStatus) {
         this.setPaymentId(paymentId);
         this.setOrderId(orderId);
@@ -38,7 +39,7 @@ public class Payment {
         this.setPaymentStatus(newStatus);
     }
 
-    private void setPaymentId(Long paymentId) {
+    private void setPaymentId(UUID paymentId) {
         if (paymentId == null) {
             throw new IllegalArgumentException("The paymentId can't be null");
         }

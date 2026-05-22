@@ -1,6 +1,7 @@
 package br.com.fiap.payment.core.domain;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +10,7 @@ import lombok.Getter;
 @Getter
 public class ProcPagRequest {
 
-    private Long paymentId;
+    private UUID paymentId;
     private String clientId;
     private BigDecimal amount;
 }
