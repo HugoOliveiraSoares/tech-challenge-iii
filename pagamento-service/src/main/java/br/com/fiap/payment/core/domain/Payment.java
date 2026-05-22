@@ -1,6 +1,7 @@
 package br.com.fiap.payment.core.domain;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import lombok.Getter;
@@ -13,14 +14,8 @@ public class Payment {
     private String clientId;
     private BigDecimal totalAmount;
     private PaymentStatus paymentStatus;
-
-    public Payment(String orderId, String clientId, BigDecimal totalAmount,
-            PaymentStatus paymentStatus) {
-        this.setOrderId(orderId);
-        this.setClientId(clientId);
-        this.setTotalAmount(totalAmount);
-        this.setPaymentStatus(paymentStatus);
-    }
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public Payment(UUID paymentId, String orderId, String clientId, BigDecimal totalAmount,
             PaymentStatus paymentStatus) {
@@ -29,6 +24,17 @@ public class Payment {
         this.setClientId(clientId);
         this.setTotalAmount(totalAmount);
         this.setPaymentStatus(paymentStatus);
+    }
+
+    public Payment(UUID paymentId, String orderId, String clientId, BigDecimal totalAmount,
+            PaymentStatus paymentStatus, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.setPaymentId(paymentId);
+        this.setOrderId(orderId);
+        this.setClientId(clientId);
+        this.setTotalAmount(totalAmount);
+        this.setPaymentStatus(paymentStatus);
+        this.setCreatedAt(createdAt);
+        this.setUpdatedAt(updatedAt);
     }
 
     public void changeStatusTo(PaymentStatus newStatus) {
@@ -72,6 +78,14 @@ public class Payment {
             throw new IllegalArgumentException("The paymentStatus can't be null");
         }
         this.paymentStatus = paymentStatus;
+    }
+
+    private void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    private void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
 }

@@ -4,17 +4,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
 class PaymentTest {
 
     private Payment createPendingPayment() {
-        return new Payment("order-1", "client-1", BigDecimal.valueOf(100), PaymentStatus.PENDING);
+        return new Payment(UUID.randomUUID(), "order-1", "client-1", BigDecimal.valueOf(100), PaymentStatus.PENDING);
     }
 
     private Payment createApprovedPayment() {
-        return new Payment("order-1", "client-1", BigDecimal.valueOf(100), PaymentStatus.APPROVED);
+        return new Payment(UUID.randomUUID(), "order-1", "client-1", BigDecimal.valueOf(100), PaymentStatus.APPROVED);
     }
 
     @Test
