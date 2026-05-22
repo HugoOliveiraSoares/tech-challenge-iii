@@ -3,6 +3,7 @@ package br.com.fiap.payment.core.usecase.impl;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -57,19 +58,18 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
         }
 
         var payment = new Payment(
+                UUID.randomUUID(),
                 event.orderId(),
                 event.clientId(),
                 event.totalAmount(),
                 PaymentStatus.PENDING);
 
-        var paymentSaved = paymentGateway.save(payment);
-
         try {
 
             var procPagRequest = new ProcPagRequest(
-                    paymentSaved.getPaymentId(),
-                    paymentSaved.getClientId(),
-                    paymentSaved.getTotalAmount());
+                    payment.getPaymentId(),
+                    payment.getClientId(),
+                    payment.getTotalAmount());
 
             var procpagStatus = procPagGateway.processarPagamento(procPagRequest);
 
@@ -77,11 +77,11 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
 
             PaymentStatus newStatus = mapProcpagStatus(procpagStatus);
 
-            paymentSaved.changeStatusTo(newStatus);
+            payment.changeStatusTo(newStatus);
 
-            paymentGateway.save(paymentSaved);
+            paymentGateway.save(payment);
 
-            var paymentEvent = buildPaymentEvent(paymentSaved);
+            var paymentEvent = buildPaymentEvent(payment);
 
             if (newStatus.equals(PaymentStatus.APPROVED)) {
                 eventGateway.publishPaymentApproval(paymentEvent);
@@ -91,7 +91,7 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
 
         } catch (PaymentProcessingException | ExternalServiceUnavailableException e) {
             log.error("Erro no processamento do pedido {}", event.orderId(), e);
-            handleFailure(paymentSaved, e);
+            handleFailure(payment, e);
         } catch (Exception e) {
             log.error("Erro inesperado no pedido {}", event.orderId(), e);
             throw e;
