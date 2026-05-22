@@ -26,18 +26,9 @@ pedido-criado
 
 ```json
 {
-  "eventType": "PEDIDO_CRIADO",
-  "pedidoId": "uuid-pedido",
-  "clienteId": "uuid-cliente",
-  "valorTotal": 56.80,
-  "itens": [
-    {
-      "produtoId": "uuid-produto",
-      "nome": "Hamburguer",
-      "quantidade": 2,
-      "precoUnitario": 25.90
-    }
-  ],
+  "orderId": "uuid-pedido",
+  "clientId": "uuid-cliente",
+  "totalAmount": 56,
   "timestamp": "2024-01-15T10:30:00Z"
 }
 ```
@@ -70,10 +61,9 @@ pagamento-aprovado
 
 ```json
 {
-  "eventType": "PAGAMENTO_APROVADO",
   "pedidoId": "uuid-pedido",
   "pagamentoId": "uuid-pagamento",
-  "valor": 56.80,
+  "valor": 580,
   "timestamp": "2024-01-15T10:35:00Z"
 }
 ```
@@ -106,10 +96,8 @@ pagamento-pendente
 
 ```json
 {
-  "eventType": "PAGAMENTO_PENDENTE",
   "pedidoId": "uuid-pedido",
   "pagamentoId": "uuid-pagamento",
-  "motivo": "SERVICO_INDISPONIVEL",
   "timestamp": "2024-01-15T10:30:00Z"
 }
 ```
@@ -187,39 +175,34 @@ Para garantir idempotência:
 
 ## Contract (Java Classes)
 
-### PedidoCriadoEvent
+### Topico pedido-criado
 
 ```java
-public record PedidoCriadoEvent(
-    String eventType,
-    String pedidoId,
-    String clienteId,
-    BigDecimal valorTotal,
-    List<PedidoItem> itens,
-    LocaDateTime timestamp
-) {}
+public record OrderEvent(
+        String orderId,
+        String clientId,
+        BigDecimal totalAmount,
+        LocalDateTime timestamp) {
+}
 ```
 
-### PagamentoAprovadoEvent
+### Topico pagamento-aprovado
 
 ```java
-public record PagamentoAprovadoEvent(
-    String eventType,
-    String pedidoId,
-    String pagamentoId,
-    BigDecimal valor,
-    LocaDateTime timestamp
-) {}
+public record PaymentEvent(
+        String orderId,
+        String paymentId,
+        BigDecimal amount,
+        LocalDateTime timestamp) {
+}
 ```
 
-### PagamentoPendenteEvent
+### Topico pagamento-pendente
 
 ```java
-public record PagamentoPendenteEvent(
-    String eventType,
-    String pedidoId,
-    String pagamentoId,
-    String motivo,
-    LocaDateTime timestamp
-) {}
-```
+public record PaymentEvent(
+        String orderId,
+        String paymentId,
+        BigDecimal amount,
+        LocalDateTime timestamp) {
+}```
