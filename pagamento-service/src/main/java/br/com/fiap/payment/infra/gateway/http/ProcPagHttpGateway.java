@@ -54,7 +54,7 @@ public class ProcPagHttpGateway implements ProcPagGateway {
         ProcPagHttpRequest httpRequest = new ProcPagHttpRequest(
                 String.valueOf(request.getPaymentId()),
                 request.getClientId(),
-                request.getAmount());
+                request.getAmount().longValue());
 
         try {
             log.info("Enviando requisicao para prog pag, Cliente {}, PagamentoId {}", httpRequest.clienteId(),
