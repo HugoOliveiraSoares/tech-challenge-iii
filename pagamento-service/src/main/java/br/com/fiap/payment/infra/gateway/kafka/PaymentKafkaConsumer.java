@@ -18,12 +18,8 @@ public class PaymentKafkaConsumer {
 
     @KafkaListener(topics = "${kafka.topic.pedido-criado}", groupId = "${spring.kafka.consumer.group-id}")
     public void consumeOrderEvent(OrderEvent orderEvent, Acknowledgment ack) {
-        try {
-            log.info("Evento recebido do pedido {}", orderEvent.orderId());
-            processPaymentUseCase.execute(orderEvent);
-            ack.acknowledge();
-        } catch (Exception e) {
-            log.info("Erro ao processsar a ordem de compra: {} - {}", orderEvent.orderId(), e.getMessage());
-        }
+        log.info("Evento recebido do pedido {}", orderEvent.orderId());
+        processPaymentUseCase.execute(orderEvent);
+        ack.acknowledge();
     }
 }
