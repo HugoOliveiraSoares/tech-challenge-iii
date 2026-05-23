@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 public class Payment {
@@ -16,6 +17,8 @@ public class Payment {
     private PaymentStatus paymentStatus;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    @Setter
+    private Integer retryCount;
 
     public Payment(UUID paymentId, String orderId, String clientId, BigDecimal totalAmount,
             PaymentStatus paymentStatus) {
@@ -24,6 +27,7 @@ public class Payment {
         this.setClientId(clientId);
         this.setTotalAmount(totalAmount);
         this.setPaymentStatus(paymentStatus);
+        this.retryCount = 0;
     }
 
     public Payment(UUID paymentId, String orderId, String clientId, BigDecimal totalAmount,
@@ -35,6 +39,20 @@ public class Payment {
         this.setPaymentStatus(paymentStatus);
         this.setCreatedAt(createdAt);
         this.setUpdatedAt(updatedAt);
+        this.retryCount = 0;
+    }
+
+    public Payment(UUID paymentId, String orderId, String clientId, BigDecimal totalAmount,
+            PaymentStatus paymentStatus, LocalDateTime createdAt, LocalDateTime updatedAt,
+            Integer retryCount) {
+        this.setPaymentId(paymentId);
+        this.setOrderId(orderId);
+        this.setClientId(clientId);
+        this.setTotalAmount(totalAmount);
+        this.setPaymentStatus(paymentStatus);
+        this.setCreatedAt(createdAt);
+        this.setUpdatedAt(updatedAt);
+        this.retryCount = retryCount;
     }
 
     public void changeStatusTo(PaymentStatus newStatus) {

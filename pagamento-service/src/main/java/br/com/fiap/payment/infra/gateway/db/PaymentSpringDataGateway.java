@@ -1,5 +1,6 @@
 package br.com.fiap.payment.infra.gateway.db;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
@@ -36,6 +37,15 @@ public class PaymentSpringDataGateway implements PaymentGateway {
         return paymentEntityRepository
                 .findPaymentByOrderId(orderId)
                 .map(PaymentMapper::toDomain);
+    }
+
+    @Override
+    public List<Payment> findPendingWithRetryCountLessThan3() {
+        return paymentEntityRepository
+                .findPendingWithRetryCountLessThan3()
+                .stream()
+                .map(PaymentMapper::toDomain)
+                .toList();
     }
 
 }

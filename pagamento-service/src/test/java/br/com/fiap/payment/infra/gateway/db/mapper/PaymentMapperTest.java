@@ -23,7 +23,7 @@ class PaymentMapperTest {
     @DisplayName("deve mapear PaymentEntity para Payment com todos os campos")
     void deve_MapearEntityParaDomain() {
         var entity = new PaymentEntity(paymentId, "order-1", "client-1",
-                BigDecimal.valueOf(100), PaymentStatus.PENDING, now, now);
+                BigDecimal.valueOf(100), PaymentStatus.PENDING, 0, now, now);
 
         Payment result = PaymentMapper.toDomain(entity);
 
@@ -34,13 +34,14 @@ class PaymentMapperTest {
         assertThat(result.getPaymentStatus()).isEqualTo(PaymentStatus.PENDING);
         assertThat(result.getCreatedAt()).isEqualTo(now);
         assertThat(result.getUpdatedAt()).isEqualTo(now);
+        assertThat(result.getRetryCount()).isEqualTo(0);
     }
 
     @Test
     @DisplayName("deve mapear Payment para PaymentEntity com todos os campos")
     void deve_MapearDomainParaEntity() {
         var domain = new Payment(paymentId, "order-1", "client-1",
-                BigDecimal.valueOf(100), PaymentStatus.APPROVED, now, now);
+                BigDecimal.valueOf(100), PaymentStatus.APPROVED, now, now, 0);
 
         PaymentEntity result = PaymentMapper.toEntity(domain);
 
@@ -51,6 +52,7 @@ class PaymentMapperTest {
         assertThat(result.getPaymentStatus()).isEqualTo(PaymentStatus.APPROVED);
         assertThat(result.getCreatedAt()).isEqualTo(now);
         assertThat(result.getUpdatedAt()).isEqualTo(now);
+        assertThat(result.getRetryCount()).isEqualTo(0);
     }
 
     @Test
@@ -71,7 +73,7 @@ class PaymentMapperTest {
     @DisplayName("deve mapear corretamente Payment com timestamps nulos")
     void deve_MapearComTimestampsNulos() {
         var entity = new PaymentEntity(paymentId, "order-1", "client-1",
-                BigDecimal.valueOf(100), PaymentStatus.PENDING, null, null);
+                BigDecimal.valueOf(100), PaymentStatus.PENDING, null, null, null);
 
         Payment result = PaymentMapper.toDomain(entity);
 
@@ -83,7 +85,7 @@ class PaymentMapperTest {
     @DisplayName("deve mapear PaymentEntity com paymentId nulo")
     void deve_MapearComPaymentIdNulo() {
         var entity = new PaymentEntity(null, "order-1", "client-1",
-                BigDecimal.valueOf(100), PaymentStatus.PENDING, now, now);
+                BigDecimal.valueOf(100), PaymentStatus.PENDING, 0, now, now);
 
         assertThatThrownBy(() -> PaymentMapper.toDomain(entity))
                 .isInstanceOf(IllegalArgumentException.class)

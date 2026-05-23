@@ -16,7 +16,8 @@ public class PaymentMapper {
                 entity.getTotalAmount(),
                 entity.getPaymentStatus(),
                 entity.getCreatedAt(),
-                entity.getUpdatedAt());
+                entity.getUpdatedAt(),
+                entity.getRetryCount());
     }
 
     public static PaymentEntity toEntity(Payment domain) {
@@ -26,6 +27,7 @@ public class PaymentMapper {
                 domain.getClientId(),
                 domain.getTotalAmount(),
                 domain.getPaymentStatus(),
+                domain.getRetryCount(),
                 domain.getCreatedAt(),
                 domain.getUpdatedAt());
     }

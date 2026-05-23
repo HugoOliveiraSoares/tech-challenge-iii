@@ -36,6 +36,8 @@ public class PaymentEntity implements Persistable<UUID> {
     private BigDecimal totalAmount;
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
+    @Column(name = "retry_count")
+    private Integer retryCount;
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
     @Column(name = "updated_at")

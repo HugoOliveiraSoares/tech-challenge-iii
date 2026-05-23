@@ -41,7 +41,7 @@ class PaymentSpringDataGatewayTest {
     @BeforeEach
     void setUp() {
         entity = new PaymentEntity(paymentId, orderId, "client-1",
-                BigDecimal.valueOf(100), PaymentStatus.PENDING, now, now);
+                BigDecimal.valueOf(100), PaymentStatus.PENDING, 0, now, now);
         domain = new Payment(paymentId, orderId, "client-1",
                 BigDecimal.valueOf(100), PaymentStatus.PENDING, now, now);
     }
