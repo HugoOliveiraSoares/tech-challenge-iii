@@ -64,6 +64,8 @@ C4Container
   Container_Boundary(pagamento_svc, "pagamento-service") {
     Container(pagamento_consumer, "Pagamento Consumer", "Spring Kafka", "Consome pedido-criado")
     Container(pagamento_usecase, "ProcessPaymentUseCase", "Spring Service", "Orquestra validação, procpag e persistência")
+    Container(pagamento_retry_usecase, "RetryPendingPaymentsUseCase", "Spring Service", "Reprocessa pagamentos pendentes")
+    Container(pagamento_scheduler, "PaymentRetryScheduler", "Spring Scheduler", "Agenda reprocessamento a cada 60s")
     Container(pagamento_http, "ProcPagHttpGateway", "RestClient + Resilience4j", "Chama POST /requisicao com retry e circuit breaker")
     Container(pagamento_producer, "Pagamento Producer", "Spring Kafka", "Publica pagamento-aprovado / pagamento-pendente")
     ContainerDb(pagamento_db, "pagamento-db", "PostgreSQL 15", "Dados de pagamentos")
@@ -84,6 +86,10 @@ C4Container
   Rel(pagamento_usecase, pagamento_db, "save / findByOrderId", "JPA/Hibernate")
   Rel(pagamento_usecase, pagamento_producer, "publishPaymentApproval / publishPaymentPending", "Spring DI")
   Rel(pagamento_producer, kafka_broker, "Publica eventos de pagamento", "JSON")
+  Rel(pagamento_scheduler, pagamento_retry_usecase, "execute()", "Spring DI")
+  Rel(pagamento_retry_usecase, pagamento_http, "processarPagamento(ProcPagRequest)", "Spring DI")
+  Rel(pagamento_retry_usecase, pagamento_db, "findPendingWithRetryCountLessThan3 / save", "JPA/Hibernate")
+  Rel(pagamento_retry_usecase, pagamento_producer, "publishPaymentApproval / publishPaymentPending", "Spring DI")
   Rel(pedido_api, pedido_db, "JPA/Hibernate", "JDBC")
 ```
 
@@ -123,8 +129,9 @@ src/
 │   │           │   ├── controller/     # Endpoints REST
 │   │           │   ├── gateway/
 │   │           │   │   ├── db/         # Implementação JPA (entity, repository, mapper)
-│   │           │   │   ├── http/       # Clientes HTTP para APIs externas
-│   │           │   │   └── kafka/      # Producers e consumers Kafka
+│   │   │   │   ├── http/       # Clientes HTTP para APIs externas
+│   │   │   │   ├── kafka/      # Producers e consumers Kafka
+│   │   │   │   └── scheduler/  # Agendadores (retry worker, etc.)
 │   │           │   └── security/       # Configuração Spring Security / OAuth2
 │   │           └── [servico]Application.java
 │   └── resources/
@@ -155,6 +162,7 @@ graph TD
     DB[Gateway/DB<br/>JPA repositories]
     HTTP[Gateway/HTTP<br/>Clientes externos]
     KFK[Gateway/Kafka<br/>Producers/Consumers]
+    SCH[Gateway/Scheduler<br/>PaymentRetryScheduler]
     SEC[Security<br/>Spring Security / OAuth2]
   end
 
@@ -173,6 +181,7 @@ graph TD
   DB --> PG
   HTTP --> EXT
   KFK --> KP
+  SCH --> UC
   SEC -.-> CTRL
 ```
 
@@ -189,7 +198,7 @@ graph TD
 - Orquestração de operações de negócio
 - Chamada a portas (gateways) definidas no domínio
 - Transações e tratamento de erros
-- **Implementado:** `ProcessPaymentUseCaseImpl` no pagamento-service
+- **Implementado:** `ProcessPaymentUseCaseImpl` e `RetryPendingPaymentsUseCaseImpl` no pagamento-service
 
 ### Domain
 
@@ -204,6 +213,7 @@ graph TD
 - **db/**: `PaymentEntity` (JPA), `PaymentEntityRepository`, `PaymentMapper`, `PaymentSpringDataGateway`
 - **http/**: `ProcPagHttpGateway` com `RestClient` + Resilience4j (Retry + Circuit Breaker)
 - **kafka/**: `PaymentKafkaConsumer` (consome `pedido-criado`), `PaymentKafkaGateway` (publica resultados), `KafkaConfig` (DLQ configurada)
+- **scheduler/**: `PaymentRetryScheduler` (reprocessamento agendado de pagamentos pendentes via `@Scheduled`)
 - **security/**: Diretório preparado, aguardando implementação
 
 ---
@@ -306,6 +316,54 @@ flowchart LR
 
 ---
 
+### Reprocessamento Agendado (Retry Worker)
+
+O `PaymentRetryScheduler` executa a cada 60s (configurável) e reprocessa pagamentos com status `PENDING` e `retry_count < 3`:
+
+```mermaid
+sequenceDiagram
+  participant Scheduler as PaymentRetryScheduler
+  participant UseCase as RetryPendingPaymentsUseCaseImpl
+  participant DB as PostgreSQL (pagamento-db)
+  participant HTTP as ProcPagHttpGateway
+  participant Procpag as Procpag (externo)
+  participant Producer as PaymentKafkaGateway
+
+  Note over Scheduler: A cada ${payment.retry.scheduled-interval}ms
+  Scheduler->>UseCase: execute()
+  UseCase->>DB: findPendingWithRetryCountLessThan3()
+  DB-->>UseCase: List<Payment> PENDING
+
+  loop Para cada pagamento pendente
+    UseCase->>HTTP: processarPagamento(ProcPagRequest)
+    HTTP->>Procpag: POST /requisicao
+    Note over HTTP: @CircuitBreaker + @Retry
+
+    alt Sucesso no Procpag
+      Procpag-->>HTTP: 201 {status}
+      HTTP-->>UseCase: status
+      UseCase->>UseCase: mapProcpagStatus(status)
+      UseCase->>DB: save(payment) (retryCount++)
+
+      alt APPROVED
+        UseCase->>Producer: publishPaymentApproval(PaymentEvent)
+        Producer->>Kafka: pagamento-aprovado
+      else PENDING
+        UseCase->>Producer: publishPaymentPending(PaymentEvent)
+        Producer->>Kafka: pagamento-pendente
+      end
+
+    else Falha (Procpag indisponível)
+      HTTP-->>UseCase: PaymentProcessingException / ExternalServiceUnavailableException
+      UseCase->>DB: save(payment) (retryCount++)
+      UseCase->>Producer: publishPaymentPending(PaymentEvent)
+      Producer->>Kafka: pagamento-pendente
+    end
+  end
+```
+
+---
+
 ## Banco de Dados
 
 Cada microsserviço possui seu próprio banco PostgreSQL dedicado, gerenciado pelo Flyway.
@@ -354,9 +412,12 @@ CREATE TABLE payment (
     client_id VARCHAR(255) NOT NULL,
     total_amount DECIMAL(19,2) NOT NULL,
     payment_status VARCHAR(20) NOT NULL, -- APPROVED, PENDING
+    retry_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_payment_status_created_at ON payment(payment_status, created_at);
 ```
 
 O `PaymentStatus` possui apenas **dois valores** (definidos no enum `br.com.fiap.payment.core.domain.PaymentStatus`):
@@ -365,6 +426,8 @@ O `PaymentStatus` possui apenas **dois valores** (definidos no enum `br.com.fiap
 |-------|-----------|
 | `APPROVED` | Pagamento aprovado pelo processador externo |
 | `PENDING` | Pagamento pendente (ainda não processado ou falhou) |
+
+**Controle de tentativas:** A coluna `retry_count` (INTEGER, default 0) controla quantas vezes o pagamento foi reprocessado. O worker agendado só seleciona pagamentos com `retry_count < 3` (configurável via `payment.retry.max-attempts`).
 
 **Regra de transição de status** (forward-only):
 - `PENDING → APPROVED` — permitido
@@ -427,6 +490,8 @@ KAFKA_TOPIC_PAGAMENTO_PENDENTE=pagamento-pendente
 KAFKA_TOPIC_PEDIDO_CRIADO=pedido-criado
 KAFKA_TOPIC_PEDIDO_CRIADO_DLQ=pedido-criado-dlq
 KAFKA_PUBLISH_TIMEOUT=30
+PAYMENT_RETRY_SCHEDULED_INTERVAL=60000
+PAYMENT_RETRY_MAX_ATTEMPTS=3
 SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://auth-service:8081
 ```
 

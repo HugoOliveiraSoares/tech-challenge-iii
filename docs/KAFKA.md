@@ -10,7 +10,7 @@ O sistema utiliza Apache Kafka para comunicação assíncrona entre os serviços
 |--------|-----------|----------|----------|
 | `pedido-criado` | Evento quando um pedido é criado | pedido-service | pagamento-service |
 | `pagamento-aprovado` | Evento quando pagamento é confirmado | pagamento-service | pedido-service |
-| `pagamento-pendente` | Evento quando pagamento está pendente | pagamento-service | pagamento-service (retry worker) |
+| `pagamento-pendente` | Evento quando pagamento está pendente | pagamento-service | pedido-service |
 
 ---
 
@@ -102,21 +102,32 @@ pagamento-pendente
 }
 ```
 
-### Fluxo (Resiliência)
+### Fluxo (Reprocessamento Agendado)
 
 ```mermaid
 sequenceDiagram
     participant PgS as pagamento-service
     participant Kafka
-    participant Worker as Retry Worker
+    participant Scheduler as PaymentRetryScheduler
+    participant DB as PostgreSQL
+    participant Procpag as Procpag
 
     PgS->>PgS: Fallback acionado<br/>(timeout/erro/circuito aberto)
     PgS->>Kafka: Produz pagamento-pendente
-    Kafka->>Worker: Consome para reprocessamento
     
-    Note over Worker: Aguarda circuito fechar<br/>e tenta novamente
+    Note over Scheduler: A cada 60s (configurável)
+    Scheduler->>DB: Busca pagamentos PENDING (retry < 3)
+    DB-->>Scheduler: Lista de pendentes
     
-    Worker->>Kafka: Republish pedido-criado
+    loop Para cada pendente
+        Scheduler->>Procpag: POST /requisicao
+        Procpag-->>Scheduler: 201 / timeout / erro
+        alt Sucesso APPROVED
+            Scheduler->>Kafka: pagamento-aprovado
+        else Sucesso PENDING ou Falha
+            Scheduler->>Kafka: pagamento-pendente
+        end
+    end
 ```
 
 ---
@@ -159,7 +170,6 @@ spring:
 |---------|----------|-------------------|
 | pagamento-service | pagamento-group | pedido-criado |
 | pedido-service | pedido-group | pagamento-aprovado, pagamento-pendente |
-| pagamento-service (retry) | retry-group | pagamento-pendente |
 
 ---
 

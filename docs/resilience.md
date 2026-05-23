@@ -37,8 +37,6 @@ resilience4j.circuitbreaker.circuitBreakerAspectOrder=1
 resilience4j.retry.retryAspectOrder=2
 ```
 
-> **Nota:** O `TimeLimiter` não está implementado. O controle de timeout é feito no nível do `RestClient` (ver seção [Timeouts HTTP no RestClient](#timeouts-http-no-restclient)).
-
 ---
 
 ## Implementação
@@ -98,14 +96,15 @@ flowchart TD
     H --> D
     G -->|Sim| I[Fallback]
     
-    I --> J[Atualiza status<br/>PENDENTE_PAGAMENTO]
+    I --> J[Mantém status<br/>PENDING]
     J --> K[Publica<br/>pagamento-pendente]
     
     F --> L[pedido-service<br/>atualiza PAGO]
-    K --> M[Worker<br/>aguarda recovery]
-    M --> N{Circuito<br/>fechado?}
-    N -->|Sim| C
-    N -->|Não| M
+    K --> M[Worker Agendado<br/>@Scheduled a cada 60s]
+    M --> N[Busca pagamentos<br/>PENDING com retry < 3]
+    N --> O{Encontrou<br/>pendentes?}
+    O -->|Sim| D
+    O -->|Não| M
 ```
 
 ---
@@ -154,49 +153,85 @@ Timeouts explícitos configurados no `ProcPagHttpGateway` via `JdkClientHttpRequ
 
 ## Fallback
 
-Quando todas as tentativas falham (timeout, erro HTTP, circuito aberto):
+Quando todas as tentativas falham (timeout, erro HTTP, circuito aberto) no fluxo principal (event-driven):
 
-1. **Atualiza pedido**: Marca como `PENDENTE_PAGAMENTO`
-2. **Publica evento**: Envia para tópico `pagamento-pendente`
-3. **Retorna**: Requisição original recebe resposta de sucesso (pedido criado com status pendente)
+1. **Mantém status PENDING**: O pagamento permanece com status `PENDING` no banco local
+2. **Incrementa retryCount**: (quando aplicável) A tentativa é contabilizada
+3. **Publica evento**: Envia para tópico `pagamento-pendente` para que o `pedido-service` e o worker agendado tomem ciência
+4. **Worker agendado**: O `PaymentRetryScheduler` reprocessará o pagamento na próxima execução agendada (se `retryCount < 3`)
 
 ---
 
 ## Reprocessamento (Retry Worker)
 
-O sistema deve implementar um worker que:
+O reprocessamento de pagamentos pendentes é feito por um worker **agendado** (`@Scheduled`) que consulta o banco de dados diretamente, sem consumir tópicos Kafka:
 
-1. Consome do tópico `pagamento-pendente`
-2. Verifica periodicamente se o circuit breaker está fechado
-3. Quando fechado, tenta processar novamente
-4. Em caso de sucesso, publica `pagamento-aprovado`
+### Componentes
+
+| Componente | Classe | Função |
+|-----------|--------|--------|
+| Agendador | `PaymentRetryScheduler` | `@Scheduled(fixedDelayString = "${payment.retry.scheduled-interval:60000}")` — dispara a cada 60s (configurável) |
+| Caso de Uso | `RetryPendingPaymentsUseCaseImpl` | Orquestra a lógica de reprocessamento |
+| Gateway | `PaymentGateway#findPendingWithRetryCountLessThan3()` | JPQL: `WHERE status = PENDING AND retryCount < 3` |
+
+### Fluxo
+
+1. O `PaymentRetryScheduler.retryPendingPayments()` é chamado a cada `payment.retry.scheduled-interval` ms
+2. O `RetryPendingPaymentsUseCaseImpl.execute()` consulta o banco por pagamentos com `paymentStatus = PENDING` e `retryCount < 3`
+3. Para cada pagamento pendente:
+   - Monta um `ProcPagRequest` e chama `ProcPagGateway.processarPagamento()` (que passa pelo Circuit Breaker + Retry do Resilience4j)
+   - **Sucesso**: mapeia o status do Procpag (`ACCEPTED → APPROVED`, `PENDING → PENDING`), incrementa `retryCount`, salva e publica o evento correspondente no Kafka
+   - **Falha** (`PaymentProcessingException` / `ExternalServiceUnavailableException`): incrementa `retryCount`, salva e publica `pagamento-pendente`
+   - **Erro inesperado**: loga e continua para o próximo pagamento (não interrompe o lote)
+
+### Configuração
+
+```properties
+# Intervalo entre execuções do scheduler (ms)
+payment.retry.scheduled-interval=60000
+
+# Número máximo de tentativas por pagamento
+payment.retry.max-attempts=3
+```
+
+### Código
 
 ```java
 @Component
-public class PagamentoRetryWorker {
+@RequiredArgsConstructor
+public class PaymentRetryScheduler {
 
-    private final CircuitBreakerRegistry circuitBreakerRegistry;
-    private final PagamentoService pagamentoService;
+    private final RetryPendingPaymentsUseCase retryPendingPaymentsUseCase;
 
-    @Scheduled(fixedDelay = 30000) // A cada 30 segundos
-    public void reprocessarPendentes() {
-        CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker("procpag");
-        
-        if (circuitBreaker.getState() == CircuitBreaker.State.CLOSED ||
-            circuitBreaker.getState() == CircuitBreaker.State.HALF_OPEN) {
-            
-            List<PagamentoPendente> pendentes = buscarPagamentosPendentes();
-            for (PagamentoPendente pendente : pendentes) {
-                try {
-                    pagamentoService.reprocessar(pendente);
-                } catch (Exception e) {
-                    log.error("Erro ao reprocessar pagamento {}", pendente.getId(), e);
-                }
-            }
-        }
+    @Scheduled(fixedDelayString = "${payment.retry.scheduled-interval:60000}")
+    public void retryPendingPayments() {
+        retryPendingPaymentsUseCase.execute();
     }
 }
 ```
+
+```java
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class RetryPendingPaymentsUseCaseImpl implements RetryPendingPaymentsUseCase {
+
+    private final PaymentGateway paymentGateway;
+    private final ProcPagGateway procPagGateway;
+    private final PaymentEventGateway eventGateway;
+
+    @Value("${payment.retry.max-attempts:3}")
+    private int maxRetryAttempts;
+
+    @Override
+    public void execute() {
+        var pendingPayments = paymentGateway.findPendingWithRetryCountLessThan3();
+        // ... reprocessa cada pagamento
+    }
+}
+```
+
+> ⚠️ **Diferença importante:** O worker não verifica explicitamente o estado do Circuit Breaker. As anotações `@CircuitBreaker` + `@Retry` no `ProcPagHttpGateway.processarPagamento()` tratam automaticamente: se o circuito estiver aberto, o fallback é disparado imediatamente, e o `retryCount` é incrementado normalmente.
 
 ---
 

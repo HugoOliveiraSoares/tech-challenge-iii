@@ -163,3 +163,83 @@ flowchart LR
 - **Backoff**: `FixedBackOff(5000L, 3)` — 5 segundos de intervalo, 3 tentativas
 - **Exceções não retryáveis**: `IllegalArgumentException` (validação de evento)
 - **Modo de acknowledgment**: manual (`Acknowledgment.acknowledge()`)
+
+---
+
+## Fluxo 4: Reprocessamento Agendado de Pagamentos Pendentes
+
+### Descrição
+
+O `PaymentRetryScheduler` executa periodicamente (a cada 60s por padrão) e delega ao `RetryPendingPaymentsUseCaseImpl` o reprocessamento de pagamentos que ficaram com status `PENDING`. O caso de uso consulta o banco por pagamentos com `retryCount < 3` e tenta processá-los novamente junto ao Procpag. Cada tentativa incrementa o `retryCount`, independentemente de sucesso ou falha.
+
+### Diagrama de Sequência
+
+```mermaid
+sequenceDiagram
+  participant Scheduler as PaymentRetryScheduler
+  participant UseCase as RetryPendingPaymentsUseCaseImpl
+  participant DB as PostgreSQL
+  participant HTTP as ProcPagHttpGateway
+  participant Procpag as Procpag (externo)
+  participant Producer as PaymentKafkaGateway
+  participant Kafka as Apache Kafka
+
+  Note over Scheduler: A cada ${payment.retry.scheduled-interval}ms
+  Scheduler->>UseCase: execute()
+  UseCase->>DB: findPendingWithRetryCountLessThan3()
+  DB-->>UseCase: List<Payment> PENDING
+
+  loop Para cada pagamento pendente
+    UseCase->>HTTP: processarPagamento(ProcPagRequest)
+    HTTP->>Procpag: POST /requisicao
+    Note over HTTP: @CircuitBreaker + @Retry
+
+    alt Sucesso no Procpag
+      Procpag-->>HTTP: 201 {status}
+      HTTP-->>UseCase: status do Procpag
+      UseCase->>UseCase: mapProcpagStatus(status)
+      UseCase->>DB: save(payment) (retryCount++)
+
+      alt APPROVED
+        UseCase->>Producer: publishPaymentApproval(PaymentEvent)
+        Producer->>Kafka: pagamento-aprovado
+      else PENDING
+        UseCase->>Producer: publishPaymentPending(PaymentEvent)
+        Producer->>Kafka: pagamento-pendente
+      end
+
+    else Falha (Procpag indisponível)
+      HTTP-->>UseCase: PaymentProcessingException / ExternalServiceUnavailableException
+      UseCase->>UseCase: handleRetryFailure()
+      UseCase->>DB: save(payment) (retryCount++)
+      UseCase->>Producer: publishPaymentPending(PaymentEvent)
+      Producer->>Kafka: pagamento-pendente
+    end
+  end
+```
+
+### Diagrama de Decisão
+
+```mermaid
+flowchart TD
+  A[Scheduler dispara<br/>a cada 60s] --> B[Busca pagamentos<br/>PENDING com retry < 3]
+  B --> C{Encontrou<br/>pendentes?}
+  C -- Não --> A
+  C -- Sim --> D[Seleciona próximo<br/>pagamento]
+  D --> E[Chama Procpag<br/>POST /requisicao]
+  E --> F{Sucesso?}
+  F -- Sim --> G{Status Procpag?}
+  G -- ACCEPTED --> H[Status → APPROVED]
+  G -- PENDING --> I[Status → PENDING]
+  G -- outro --> J[Status → PENDING<br/>log warning]
+  F -- Não --> I
+  H --> K[Incrementa retryCount]
+  I --> K
+  J --> K
+  K --> L[Salva Payment]
+  L --> M{Status final?}
+  M -- APPROVED --> N[Publica pagamento-aprovado]
+  M -- PENDING --> O[Publica pagamento-pendente]
+  N --> C
+  O --> C
+```
