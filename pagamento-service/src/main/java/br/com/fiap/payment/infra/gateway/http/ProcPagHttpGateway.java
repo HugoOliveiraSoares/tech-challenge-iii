@@ -1,6 +1,7 @@
 package br.com.fiap.payment.infra.gateway.http;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -12,6 +13,9 @@ import br.com.fiap.payment.infra.gateway.http.dto.ProcPagHttpRequest;
 import br.com.fiap.payment.infra.gateway.http.dto.ProcPagHttpResponse;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
+import java.net.http.HttpClient;
+import java.time.Duration;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -25,8 +29,18 @@ public class ProcPagHttpGateway implements ProcPagGateway {
     private final RestClient restClient;
 
     public ProcPagHttpGateway(RestClient.Builder restClientBuilder,
-            @Value("${procpag.url}") String procpagUrl) {
-        this.restClient = restClientBuilder.baseUrl(procpagUrl).build();
+            @Value("${procpag.url}") String procpagUrl,
+            @Value("${procpag.connect-timeout}") Duration connectTimeout,
+            @Value("${procpag.read-timeout}") Duration readTimeout) {
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(connectTimeout)
+                .build();
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+        requestFactory.setReadTimeout(readTimeout);
+        this.restClient = restClientBuilder
+                .baseUrl(procpagUrl)
+                .requestFactory(requestFactory)
+                .build();
     }
 
     @Override

@@ -47,22 +47,12 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
 
         validateEvent(event);
 
-        log.info("Processando pagamento de pedido {}", event.orderId());
-
-        Optional<Payment> paymentByOrderIdAndApproved = paymentGateway
-                .findPaymentByOrderIdAndApproved(event.orderId());
-
-        if (paymentByOrderIdAndApproved.isPresent()) {
-            log.warn("Pedido com id {} já foi criado", event.orderId());
+        var payment = resolvePayment(event);
+        if (payment == null) {
             return;
         }
 
-        var payment = new Payment(
-                UUID.randomUUID(),
-                event.orderId(),
-                event.clientId(),
-                event.totalAmount(),
-                PaymentStatus.PENDING);
+        log.info("Processando pagamento de pedido {}", event.orderId());
 
         try {
 
@@ -98,6 +88,25 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
         }
     }
 
+    private Payment resolvePayment(OrderEvent event) {
+        Optional<Payment> existing = paymentGateway.findPaymentByOrderId(event.orderId());
+        if (existing.isEmpty()) {
+            return new Payment(
+                    UUID.randomUUID(),
+                    event.orderId(),
+                    event.clientId(),
+                    event.totalAmount(),
+                    PaymentStatus.PENDING);
+        }
+        Payment payment = existing.get();
+        if (payment.getPaymentStatus() == PaymentStatus.APPROVED) {
+            log.warn("Pedido {} já foi aprovado. Ignorando evento duplicado.", event.orderId());
+            return null;
+        }
+        log.info("Re-processando pagamento pendente do pedido {}", event.orderId());
+        return payment;
+    }
+
     private void validateEvent(OrderEvent event) {
         if (event.totalAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Valor do pedido deve ser positivo");
@@ -105,6 +114,10 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
         if (event.clientId() == null || event.clientId().isBlank()) {
             throw new IllegalArgumentException("ID do cliente não pode ser vazio");
         }
+        if (event.orderId() == null || event.orderId().isBlank()) {
+            throw new IllegalArgumentException("ID do pedido não pode ser vazio");
+        }
+
     }
 
     private PaymentStatus mapProcpagStatus(String procpagStatus) {

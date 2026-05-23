@@ -8,6 +8,8 @@ public interface PaymentGateway {
 
     Optional<Payment> findPaymentByOrderIdAndApproved(String orderId);
 
+    Optional<Payment> findPaymentByOrderId(String orderId);
+
     Payment save(Payment payment);
 
 }

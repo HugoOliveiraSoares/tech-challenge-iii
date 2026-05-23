@@ -31,4 +31,11 @@ public class PaymentSpringDataGateway implements PaymentGateway {
         return PaymentMapper.toDomain(savedEntity);
     }
 
+    @Override
+    public Optional<Payment> findPaymentByOrderId(String orderId) {
+        return paymentEntityRepository
+                .findPaymentByOrderId(orderId)
+                .map(PaymentMapper::toDomain);
+    }
+
 }
