@@ -10,90 +10,73 @@ O sistema utiliza **Resilience4j** para implementar padrões de resiliência nas
 |---------|-----------|
 | Circuit Breaker | Evita chamadas consecutivas a serviço falhando |
 | Retry | Tenta novamente em caso de falha |
-| Timeout | Limita tempo de espera por resposta |
+| Timeout | Limita tempo de espera por resposta (connect + read configurados no RestClient) |
 | Fallback | Ação alternativa quando todas as tentativas falham |
 
 ---
 
 ## Configuração Resilience4j
 
-### application.yml (pagamento-service)
+### application.properties (pagamento-service)
 
-```yaml
-resilience4j:
-  circuitbreaker:
-    instances:
-      procpag:
-        registerHealthIndicator: true
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 5
-        permittedNumberOfCallsInHalfOpenState: 3
-        automaticTransitionFromOpenToHalfOpenEnabled: true
-        waitDurationInOpenState: 30s
-        failureRateThreshold: 50
-        eventConsumerBufferSize: 10
+```properties
+# Resilience4j Retry
+resilience4j.retry.instances.procPagRetry.max-attempts=3
+resilience4j.retry.instances.procPagRetry.wait-duration=5s
+resilience4j.retry.instances.procPagRetry.retry-exceptions[0]=java.lang.Exception
 
-  retry:
-    instances:
-      procpag:
-        maxAttempts: 3
-        waitDuration: 2s
-        enableExponentialBackoff: true
-        exponentialBackoffMultiplier: 2
-        retryExceptions:
-          java.lang.Exception
+# Resilience4j CircuitBreaker
+resilience4j.circuitbreaker.instances.procPagCircuitBreaker.sliding-window-size=10
+resilience4j.circuitbreaker.instances.procPagCircuitBreaker.minimum-number-of-calls=5
+resilience4j.circuitbreaker.instances.procPagCircuitBreaker.failure-rate-threshold=50
+resilience4j.circuitbreaker.instances.procPagCircuitBreaker.wait-duration-in-open-state=30s
+resilience4j.circuitbreaker.instances.procPagCircuitBreaker.permitted-number-of-calls-in-half-open-state=3
 
-  timelimiter:
-    instances:
-      procpag:
-        timeoutDuration: 5s
-        cancelRunningFuture: true
+# Aspect order: CircuitBreaker runs before Retry
+resilience4j.circuitbreaker.circuitBreakerAspectOrder=1
+resilience4j.retry.retryAspectOrder=2
 ```
+
+> **Nota:** O `TimeLimiter` não está implementado. O controle de timeout é feito no nível do `RestClient` (ver seção [Timeouts HTTP no RestClient](#timeouts-http-no-restclient)).
 
 ---
 
 ## Implementação
 
-### Service com Annotations
+### ProcPagHttpGateway com Annotations
 
 ```java
+@Slf4j
 @Service
-@RequiredArgsConstructor
-public class PagamentoService {
+public class ProcPagHttpGateway implements ProcPagGateway {
 
-    private final PagamentoExternalClient externalClient;
-    private final PedidoEventProducer eventProducer;
-    private final PedidoRepository pedidoRepository;
+    private final RestClient restClient;
 
-    @CircuitBreaker(name = "procpag", fallbackMethod = "processarPagamentoFallback")
-    @Retry(name = "procpag")
-    @TimeLimiter(name = "procpag")
-    public void processarPagamento(PedidoCriadoEvent event) {
-        // Chama o serviço externo
-        RequisicaoPagamentoRequest request = new RequisicaoPagamentoRequest(
-            event.pedidoId().toString(),
-            event.clienteId().toString(),
-            event.valorTotal().intValue()
-        );
-        
-        externalClient.enviarRequisicao(request);
-        
-        // Se sucesso, publica evento de aprovação
-        eventProducer.publicarPagamentoAprovado(new PagamentoAprovadoEvent(...));
+    public ProcPagHttpGateway(RestClient.Builder restClientBuilder,
+            @Value("${procpag.url}") String procpagUrl,
+            @Value("${procpag.connect-timeout}") Duration connectTimeout,
+            @Value("${procpag.read-timeout}") Duration readTimeout) {
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(connectTimeout)
+                .build();
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+        requestFactory.setReadTimeout(readTimeout);
+        this.restClient = restClientBuilder
+                .baseUrl(procpagUrl)
+                .requestFactory(requestFactory)
+                .build();
     }
 
-    private void processarPagamentoFallback(PedidoCriadoEvent event, Exception ex) {
-        // Fallback: marca como pendente e envia para fila
-        pedidoRepository.atualizarStatus(event.pedidoId(), StatusPedido.PENDENTE_PAGAMENTO);
-        
-        eventProducer.publicarPagamentoPendente(new PagamentoPendenteEvent(
-            "PAGAMENTO_PENDENTE",
-            event.pedidoId(),
-            null,
-            "SERVICO_INDISPONIVEL: " + ex.getMessage(),
-            Instant.now()
-        ));
+    @Override
+    @CircuitBreaker(name = "procPagCircuitBreaker", fallbackMethod = "requisicaoFallback")
+    @Retry(name = "procPagRetry", fallbackMethod = "requisicaoFallback")
+    public String processarPagamento(ProcPagRequest request) {
+        return postHttpRequest(request);
     }
+
+    private String postHttpRequest(ProcPagRequest request) { ... }
+
+    public String requisicaoFallback(ProcPagRequest request, Exception ex) { ... }
 }
 ```
 
@@ -148,11 +131,24 @@ stateDiagram-v2
 
 ---
 
-## Timeout
+## Timeouts HTTP no RestClient
 
-- Tempo máximo de espera: **5 segundos**
-- Após timeout, o Retry entra em ação
+Timeouts explícitos configurados no `ProcPagHttpGateway` via `JdkClientHttpRequestFactory`:
+
+| Timeout | Valor | Propriedade | Descrição |
+|---------|-------|-------------|-----------|
+| Connect | 5s | `procpag.connect-timeout` | Tempo máximo para estabelecer conexão TCP com o Procpag |
+| Read | 10s | `procpag.read-timeout` | Tempo máximo para receber a resposta após conexão estabelecida |
+
+- Ambos são parametrizáveis via `application.properties`
+- Valores definidos em `application.properties`:
+  ```properties
+  procpag.connect-timeout=5s
+  procpag.read-timeout=10s
+  ```
+- Após timeout (connect ou read), o `@Retry(name = "procPagRetry")` entra em ação com 3 tentativas e 5s de espera entre elas
 - Se todos os retries falharem, o Fallback é executado
+- Tempo máximo estimado por chamada completa (3 tentativas + waits): ~55s
 
 ---
 
