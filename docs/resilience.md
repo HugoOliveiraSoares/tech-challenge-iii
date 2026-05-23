@@ -41,8 +41,7 @@ resilience4j:
         enableExponentialBackoff: true
         exponentialBackoffMultiplier: 2
         retryExceptions:
-          - java.io.IOException
-          - java.util.concurrent.TimeoutException
+          java.lang.Exception
 
   timelimiter:
     instances:
@@ -170,6 +169,7 @@ Quando todas as tentativas falham (timeout, erro HTTP, circuito aberto):
 ## Reprocessamento (Retry Worker)
 
 O sistema deve implementar um worker que:
+
 1. Consome do tópico `pagamento-pendente`
 2. Verifica periodicamente se o circuit breaker está fechado
 3. Quando fechado, tenta processar novamente
