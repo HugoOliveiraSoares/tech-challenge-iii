@@ -158,10 +158,10 @@ docker compose ps
 
 ## Documentação
 
-- [Arquitetura](./docs/ARCHITECTURE.md)
+- [Arquitetura](./docs/architecture.md)
 - [API](./docs/API.md)
 - [Kafka](./docs/KAFKA.md)
-- [Resiliência](./docs/RESILIENCE.md)
+- [Resiliência](./docs/resilience.md)
 - [Autenticação](docs/autenticacao.md)
 
 ## Variáveis de Ambiente
