@@ -3,6 +3,8 @@ package br.com.fiap.payment.infra.gateway.http;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
 import br.com.fiap.payment.core.domain.ProcPagRequest;
@@ -73,9 +75,12 @@ public class ProcPagHttpGateway implements ProcPagGateway {
             }
             return response.status();
 
+        } catch (HttpServerErrorException | ResourceAccessException ex) {
+            log.error("Erro na comunicação com Procpag: {}", ex.getMessage());
+            throw new ExternalServiceUnavailableException("Procpag indisponível", ex);
         } catch (Exception ex) {
-            log.error("Error calling procpag: {}", ex.getMessage());
-            throw new PaymentProcessingException("Falha no processamento do pagamento", ex);
+            log.error("Erro inesperado na chamada Procpag", ex);
+            throw new PaymentProcessingException("Falha inesperada no processamento do pagamento", ex);
         }
     }
 
