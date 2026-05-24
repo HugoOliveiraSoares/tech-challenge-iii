@@ -163,9 +163,9 @@ class RetryPendingPaymentsUseCaseImplTest {
 
                 verify(procPagGateway).processPayment(procPagCaptor.capture());
                 var request = procPagCaptor.getValue();
-                assertThat(request.getClientId()).isEqualTo(CLIENT_ID);
-                assertThat(request.getAmount()).isEqualByComparingTo(TOTAL_AMOUNT);
-                assertThat(request.getPaymentId()).isEqualTo(pendingPayment.getPaymentId());
+                assertThat(request.clientId()).isEqualTo(CLIENT_ID);
+                assertThat(request.amount()).isEqualByComparingTo(TOTAL_AMOUNT);
+                assertThat(request.paymentId()).isEqualTo(pendingPayment.getPaymentId());
             }
 
             @Test

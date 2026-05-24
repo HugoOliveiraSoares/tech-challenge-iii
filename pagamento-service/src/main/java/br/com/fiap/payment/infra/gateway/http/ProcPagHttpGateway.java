@@ -54,9 +54,9 @@ public class ProcPagHttpGateway implements ProcPagGateway {
 
     private String postHttpRequest(ProcPagRequest request) {
         ProcPagHttpRequest httpRequest = new ProcPagHttpRequest(
-                String.valueOf(request.getPaymentId()),
-                request.getClientId(),
-                request.getAmount().longValue());
+                String.valueOf(request.paymentId()),
+                request.clientId(),
+                request.amount().longValue());
 
         try {
             log.info("Enviando requisicao para prog pag, Cliente {}, PagamentoId {}", httpRequest.clienteId(),
@@ -85,7 +85,7 @@ public class ProcPagHttpGateway implements ProcPagGateway {
     }
 
     public String requisicaoFallback(ProcPagRequest request, Exception ex) {
-        log.error("Fallback acionado para pagamento {}: {}", request.getPaymentId(), ex.getMessage());
+        log.error("Fallback acionado para pagamento {}: {}", request.paymentId(), ex.getMessage());
         throw new ExternalServiceUnavailableException("Serviço Procpag indisponível", ex);
     }
 }
