@@ -81,9 +81,6 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
         } catch (PaymentProcessingException | ExternalServiceUnavailableException e) {
             log.error("Erro no processamento do pedido {}", event.orderId(), e);
             handleFailure(payment, e);
-        } catch (Exception e) {
-            log.error("Erro inesperado no pedido {}", event.orderId(), e);
-            throw e;
         }
     }
 
