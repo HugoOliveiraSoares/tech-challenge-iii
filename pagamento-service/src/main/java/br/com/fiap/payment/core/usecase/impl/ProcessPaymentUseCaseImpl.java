@@ -60,7 +60,7 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
                     payment.getClientId(),
                     payment.getTotalAmount());
 
-            var procpagStatus = procPagGateway.processarPagamento(procPagRequest);
+            var procpagStatus = procPagGateway.processPayment(procPagRequest);
 
             log.info("Status Procpag para pedido {}: {}", event.orderId(), procpagStatus);
 

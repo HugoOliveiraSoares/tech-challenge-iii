@@ -56,7 +56,7 @@ public class RetryPendingPaymentsUseCaseImpl implements RetryPendingPaymentsUseC
                 payment.getTotalAmount());
 
         try {
-            var procpagStatus = procPagGateway.processarPagamento(request);
+            var procpagStatus = procPagGateway.processPayment(request);
             PaymentStatus newStatus = PaymentMapperUtil.mapProcpagStatus(procpagStatus);
 
             payment.changeStatusTo(newStatus);

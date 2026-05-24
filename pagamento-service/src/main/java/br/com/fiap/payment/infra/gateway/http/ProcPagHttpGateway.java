@@ -48,7 +48,7 @@ public class ProcPagHttpGateway implements ProcPagGateway {
     @Override
     @CircuitBreaker(name = "procPagCircuitBreaker", fallbackMethod = "requisicaoFallback")
     @Retry(name = "procPagRetry", fallbackMethod = "requisicaoFallback")
-    public String processarPagamento(ProcPagRequest request) {
+    public String processPayment(ProcPagRequest request) {
         return postHttpRequest(request);
     }
 

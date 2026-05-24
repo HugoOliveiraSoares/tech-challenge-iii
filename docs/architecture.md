@@ -81,13 +81,13 @@ C4Container
   Rel(kafka_broker, pedido_consumer, "Consome pagamento-aprovado / pagamento-pendente", "JSON")
   Rel(kafka_broker, pagamento_consumer, "Consome pedido-criado", "JSON")
   Rel(pagamento_consumer, pagamento_usecase, "execute(OrderEvent)", "Spring DI")
-  Rel(pagamento_usecase, pagamento_http, "processarPagamento(ProcPagRequest)", "Spring DI")
+  Rel(pagamento_usecase, pagamento_http, "processPayment(ProcPagRequest)", "Spring DI")
   Rel(pagamento_http, procpag_ext, "POST /requisicao", "HTTP JSON")
   Rel(pagamento_usecase, pagamento_db, "save / findByOrderId", "JPA/Hibernate")
   Rel(pagamento_usecase, pagamento_producer, "publishPaymentApproval / publishPaymentPending", "Spring DI")
   Rel(pagamento_producer, kafka_broker, "Publica eventos de pagamento", "JSON")
   Rel(pagamento_scheduler, pagamento_retry_usecase, "execute()", "Spring DI")
-  Rel(pagamento_retry_usecase, pagamento_http, "processarPagamento(ProcPagRequest)", "Spring DI")
+  Rel(pagamento_retry_usecase, pagamento_http, "processPayment(ProcPagRequest)", "Spring DI")
   Rel(pagamento_retry_usecase, pagamento_db, "findPendingPayments / save", "JPA/Hibernate")
   Rel(pagamento_retry_usecase, pagamento_producer, "publishPaymentApproval / publishPaymentPending", "Spring DI")
   Rel(pedido_api, pedido_db, "JPA/Hibernate", "JDBC")
@@ -244,7 +244,7 @@ sequenceDiagram
   DB-->>UseCase: Optional.empty() (idempotência)
 
   UseCase->>UseCase: Cria Payment(PENDING, UUID.randomUUID())
-  UseCase->>HTTP: processarPagamento(ProcPagRequest)
+  UseCase->>HTTP: processPayment(ProcPagRequest)
 
   HTTP->>Procpag: POST /requisicao
   Note over HTTP: @CircuitBreaker + @Retry
@@ -273,7 +273,7 @@ sequenceDiagram
   Kafka->>Consumer: Consome OrderEvent
   Consumer->>UseCase: execute(orderEvent)
 
-  UseCase->>HTTP: processarPagamento(request)
+  UseCase->>HTTP: processPayment(request)
 
   Note over HTTP,Procpag: Tentativa 1 (Retry)
   HTTP->>Procpag: POST /requisicao
@@ -335,7 +335,7 @@ sequenceDiagram
   DB-->>UseCase: List<Payment> PENDING
 
   loop Para cada pagamento pendente
-    UseCase->>HTTP: processarPagamento(ProcPagRequest)
+    UseCase->>HTTP: processPayment(ProcPagRequest)
     HTTP->>Procpag: POST /requisicao
     Note over HTTP: @CircuitBreaker + @Retry
 

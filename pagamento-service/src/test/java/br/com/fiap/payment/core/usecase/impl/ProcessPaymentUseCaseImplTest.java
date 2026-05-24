@@ -109,7 +109,7 @@ class ProcessPaymentUseCaseImplTest {
             @DisplayName("deve aprovar pagamento e publicar pagamento-aprovado quando Procpag retornar ACCEPTED")
             void deve_AprovarPagamento_Quando_ProcpagRetornarAccepted() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
-                when(procPagGateway.processarPagamento(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
+                when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
 
                 useCase.execute(validEvent);
@@ -131,7 +131,7 @@ class ProcessPaymentUseCaseImplTest {
             @DisplayName("deve manter pagamento como PENDING e publicar pagamento-pendente quando Procpag retornar PENDING")
             void deve_ManterComoPendente_Quando_ProcpagRetornarPending() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
-                when(procPagGateway.processarPagamento(any(ProcPagRequest.class))).thenReturn("PENDING");
+                when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("PENDING");
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
 
                 useCase.execute(validEvent);
@@ -147,7 +147,7 @@ class ProcessPaymentUseCaseImplTest {
             @DisplayName("deve tratar status desconhecido como PENDING quando Procpag retornar status inesperado")
             void deve_TratarComoPendente_Quando_ProcpagRetornarStatusDesconhecido() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
-                when(procPagGateway.processarPagamento(any(ProcPagRequest.class))).thenReturn("REJECTED");
+                when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("REJECTED");
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
 
                 useCase.execute(validEvent);
@@ -161,10 +161,10 @@ class ProcessPaymentUseCaseImplTest {
 
             @Test
             @DisplayName("deve reprocessar pagamento pendente existente quando pedido já possui pagamento PENDING")
-            void deve_ReprocessarPagamentoPendente_Quando_PagamentoExistentePendente() {
+            void deve_ReprocessPaymentPendente_Quando_PagamentoExistentePendente() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID))
                         .thenReturn(Optional.of(pendingPayment));
-                when(procPagGateway.processarPagamento(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
+                when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
 
                 useCase.execute(validEvent);
@@ -183,12 +183,12 @@ class ProcessPaymentUseCaseImplTest {
             @DisplayName("deve passar dados corretos para o Procpag")
             void deve_PassarDadosCorretosParaProcpag() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
-                when(procPagGateway.processarPagamento(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
+                when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
 
                 useCase.execute(validEvent);
 
-                verify(procPagGateway).processarPagamento(procPagCaptor.capture());
+                verify(procPagGateway).processPayment(procPagCaptor.capture());
                 var request = procPagCaptor.getValue();
                 assertThat(request.getClientId()).isEqualTo(CLIENT_ID);
                 assertThat(request.getAmount()).isEqualByComparingTo(TOTAL_AMOUNT);
@@ -308,7 +308,7 @@ class ProcessPaymentUseCaseImplTest {
             @DisplayName("deve manter como PENDING e publicar pagamento-pendente quando Procpag lançar PaymentProcessingException")
             void deve_PublicarPagamentoPendente_Quando_ProcpagLancarPaymentProcessingException() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
-                when(procPagGateway.processarPagamento(any(ProcPagRequest.class)))
+                when(procPagGateway.processPayment(any(ProcPagRequest.class)))
                         .thenThrow(new PaymentProcessingException("Falha no processamento"));
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -326,7 +326,7 @@ class ProcessPaymentUseCaseImplTest {
             @DisplayName("deve manter como PENDING e publicar pagamento-pendente quando Procpag lançar ExternalServiceUnavailableException")
             void deve_PublicarPagamentoPendente_Quando_ProcpagLancarExternalServiceUnavailableException() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
-                when(procPagGateway.processarPagamento(any(ProcPagRequest.class)))
+                when(procPagGateway.processPayment(any(ProcPagRequest.class)))
                         .thenThrow(new ExternalServiceUnavailableException(
                                 "Serviço indisponível", new RuntimeException()));
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
@@ -345,7 +345,7 @@ class ProcessPaymentUseCaseImplTest {
             @DisplayName("deve propagar exceção inesperada sem tratar quando Procpag lançar RuntimeException")
             void deve_PropagarExcecaoInesperada_Quando_ProcpagLancarExcecaoGenerica() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
-                when(procPagGateway.processarPagamento(any(ProcPagRequest.class)))
+                when(procPagGateway.processPayment(any(ProcPagRequest.class)))
                         .thenThrow(new RuntimeException("Erro inesperado"));
 
                 assertThatThrownBy(() -> useCase.execute(validEvent))
@@ -361,7 +361,7 @@ class ProcessPaymentUseCaseImplTest {
             @DisplayName("deve engolir exceção da publicação quando handleFailure falhar ao publicar evento pendente")
             void deve_EngolirExcecao_Quando_PublicacaoEventoPendenteFalhar() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
-                when(procPagGateway.processarPagamento(any(ProcPagRequest.class)))
+                when(procPagGateway.processPayment(any(ProcPagRequest.class)))
                         .thenThrow(new PaymentProcessingException("Falha no processamento"));
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
                 doThrow(new RuntimeException("Kafka offline"))

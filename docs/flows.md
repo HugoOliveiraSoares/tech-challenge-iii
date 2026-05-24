@@ -30,7 +30,7 @@ sequenceDiagram
   DB-->>UseCase: Optional.empty() (idempotência)
 
   UseCase->>UseCase: Cria Payment(PENDING)
-  UseCase->>HTTP: processarPagamento(ProcPagRequest)
+  UseCase->>HTTP: processPayment(ProcPagRequest)
   HTTP->>Procpag: POST /requisicao
   Procpag-->>HTTP: 201 {status: "ACCEPTED"}
 
@@ -92,7 +92,7 @@ sequenceDiagram
   UseCase->>UseCase: validate + idempotency check
   UseCase->>UseCase: Cria Payment(PENDING)
 
-  UseCase->>HTTP: processarPagamento(request)
+  UseCase->>HTTP: processPayment(request)
 
   Note over HTTP,Procpag: Tentativa 1 (Retry)
   HTTP->>Procpag: POST /requisicao
@@ -190,7 +190,7 @@ sequenceDiagram
   DB-->>UseCase: List<Payment> PENDING
 
   loop Para cada pagamento pendente
-    UseCase->>HTTP: processarPagamento(ProcPagRequest)
+    UseCase->>HTTP: processPayment(ProcPagRequest)
     HTTP->>Procpag: POST /requisicao
     Note over HTTP: @CircuitBreaker + @Retry
 

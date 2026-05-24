@@ -68,7 +68,7 @@ public class ProcPagHttpGateway implements ProcPagGateway {
     @Override
     @CircuitBreaker(name = "procPagCircuitBreaker", fallbackMethod = "requisicaoFallback")
     @Retry(name = "procPagRetry", fallbackMethod = "requisicaoFallback")
-    public String processarPagamento(ProcPagRequest request) {
+    public String processPayment(ProcPagRequest request) {
         return postHttpRequest(request);
     }
 
@@ -179,7 +179,7 @@ O reprocessamento de pagamentos pendentes é feito por um worker **agendado** (`
 1. O `PaymentRetryScheduler.retryPendingPayments()` é chamado a cada `payment.retry.scheduled-interval` ms
 2. O `RetryPendingPaymentsUseCaseImpl.execute()` consulta o banco por pagamentos com `paymentStatus = PENDING` e `retryCount < 3`
 3. Para cada pagamento pendente:
-   - Monta um `ProcPagRequest` e chama `ProcPagGateway.processarPagamento()` (que passa pelo Circuit Breaker + Retry do Resilience4j)
+   - Monta um `ProcPagRequest` e chama `ProcPagGateway.processPayment()` (que passa pelo Circuit Breaker + Retry do Resilience4j)
    - **Sucesso**: mapeia o status do Procpag (`ACCEPTED → APPROVED`, `PENDING → PENDING`), incrementa `retryCount`, salva e publica o evento correspondente no Kafka
    - **Falha** (`PaymentProcessingException` / `ExternalServiceUnavailableException`): incrementa `retryCount`, salva e publica `pagamento-pendente`
    - **Erro inesperado**: loga e continua para o próximo pagamento (não interrompe o lote)
@@ -231,7 +231,7 @@ public class RetryPendingPaymentsUseCaseImpl implements RetryPendingPaymentsUseC
 }
 ```
 
-> ⚠️ **Diferença importante:** O worker não verifica explicitamente o estado do Circuit Breaker. As anotações `@CircuitBreaker` + `@Retry` no `ProcPagHttpGateway.processarPagamento()` tratam automaticamente: se o circuito estiver aberto, o fallback é disparado imediatamente, e o `retryCount` é incrementado normalmente.
+> ⚠️ **Diferença importante:** O worker não verifica explicitamente o estado do Circuit Breaker. As anotações `@CircuitBreaker` + `@Retry` no `ProcPagHttpGateway.processPayment()` tratam automaticamente: se o circuito estiver aberto, o fallback é disparado imediatamente, e o `retryCount` é incrementado normalmente.
 
 ---
 
