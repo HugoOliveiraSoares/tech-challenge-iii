@@ -44,7 +44,7 @@ public class PaymentSpringDataGateway implements PaymentGateway {
     }
 
     @Override
-    public List<Payment> findPendingWithRetryCountLessThan3() {
+    public List<Payment> findPendingPayments() {
         return paymentEntityRepository
                 .findByPaymentStatusAndRetryCount(PaymentStatus.PENDING, maxRetryAttempts)
                 .stream()

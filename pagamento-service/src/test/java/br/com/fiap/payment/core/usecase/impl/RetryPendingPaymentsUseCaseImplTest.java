@@ -90,7 +90,7 @@ class RetryPendingPaymentsUseCaseImplTest {
             @Test
             @DisplayName("deve reprocessar pagamento PENDING e aprovar quando Procpag retornar ACCEPTED")
             void deve_AprovarPagamento_Quando_ProcpagRetornarAccepted() {
-                when(paymentGateway.findPendingWithRetryCountLessThan3())
+                when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment));
                 when(procPagGateway.processarPagamento(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
@@ -112,7 +112,7 @@ class RetryPendingPaymentsUseCaseImplTest {
             @Test
             @DisplayName("deve manter como PENDING quando Procpag retornar PENDING")
             void deve_ManterComoPendente_Quando_ProcpagRetornarPending() {
-                when(paymentGateway.findPendingWithRetryCountLessThan3())
+                when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment));
                 when(procPagGateway.processarPagamento(any(ProcPagRequest.class))).thenReturn("PENDING");
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
@@ -130,7 +130,7 @@ class RetryPendingPaymentsUseCaseImplTest {
             @Test
             @DisplayName("deve passar dados corretos para o Procpag")
             void deve_PassarDadosCorretosParaProcpag() {
-                when(paymentGateway.findPendingWithRetryCountLessThan3())
+                when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment));
                 when(procPagGateway.processarPagamento(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
@@ -147,7 +147,7 @@ class RetryPendingPaymentsUseCaseImplTest {
             @Test
             @DisplayName("deve tratar status desconhecido como PENDING")
             void deve_TratarComoPendente_Quando_ProcpagRetornarStatusDesconhecido() {
-                when(paymentGateway.findPendingWithRetryCountLessThan3())
+                when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment));
                 when(procPagGateway.processarPagamento(any(ProcPagRequest.class))).thenReturn("REJECTED");
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
@@ -169,7 +169,7 @@ class RetryPendingPaymentsUseCaseImplTest {
                         BigDecimal.valueOf(50), PaymentStatus.PENDING,
                         LocalDateTime.now().minusMinutes(10), LocalDateTime.now(), 0);
 
-                when(paymentGateway.findPendingWithRetryCountLessThan3())
+                when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment, payment2));
                 when(procPagGateway.processarPagamento(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
@@ -188,7 +188,7 @@ class RetryPendingPaymentsUseCaseImplTest {
             @Test
             @DisplayName("nao deve fazer nada quando nao houver pagamentos pendentes")
             void nao_DeveFazerNada_Quando_NaoHouverPagamentosPendentes() {
-                when(paymentGateway.findPendingWithRetryCountLessThan3())
+                when(paymentGateway.findPendingPayments())
                         .thenReturn(Collections.emptyList());
 
                 useCase.execute();
@@ -205,7 +205,7 @@ class RetryPendingPaymentsUseCaseImplTest {
             @Test
             @DisplayName("deve processar pagamento com retryCount excedido (guard clause removida)")
             void deve_Processar_Quando_RetryCountExcederLimite() {
-                when(paymentGateway.findPendingWithRetryCountLessThan3())
+                when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(exhaustedPayment));
                 when(procPagGateway.processarPagamento(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
@@ -224,7 +224,7 @@ class RetryPendingPaymentsUseCaseImplTest {
             @Test
             @DisplayName("deve falhar ao processar APPROVED (changeStatusTo bloqueia transicao)")
             void deve_Falhar_Quando_PagamentoJaAprovado() {
-                when(paymentGateway.findPendingWithRetryCountLessThan3())
+                when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(approvedPayment));
                 when(procPagGateway.processarPagamento(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
 
@@ -243,7 +243,7 @@ class RetryPendingPaymentsUseCaseImplTest {
             @Test
             @DisplayName("deve incrementar retryCount e publicar pagamento-pendente quando Procpag lancar PaymentProcessingException")
             void deve_IncrementarRetry_Quando_ProcpagLancarPaymentProcessingException() {
-                when(paymentGateway.findPendingWithRetryCountLessThan3())
+                when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment));
                 when(procPagGateway.processarPagamento(any(ProcPagRequest.class)))
                         .thenThrow(new PaymentProcessingException("Falha no processamento"));
@@ -262,7 +262,7 @@ class RetryPendingPaymentsUseCaseImplTest {
             @Test
             @DisplayName("deve incrementar retryCount e publicar pagamento-pendente quando Procpag lancar ExternalServiceUnavailableException")
             void deve_IncrementarRetry_Quando_ProcpagLancarExternalServiceUnavailableException() {
-                when(paymentGateway.findPendingWithRetryCountLessThan3())
+                when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment));
                 when(procPagGateway.processarPagamento(any(ProcPagRequest.class)))
                         .thenThrow(new ExternalServiceUnavailableException(
@@ -282,7 +282,7 @@ class RetryPendingPaymentsUseCaseImplTest {
             @Test
             @DisplayName("deve engolir excecao da publicacao do evento pendente")
             void deve_EngolirExcecao_Quando_PublicacaoEventoFalhar() {
-                when(paymentGateway.findPendingWithRetryCountLessThan3())
+                when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment));
                 when(procPagGateway.processarPagamento(any(ProcPagRequest.class)))
                         .thenThrow(new PaymentProcessingException("Falha no processamento"));
@@ -306,7 +306,7 @@ class RetryPendingPaymentsUseCaseImplTest {
                         BigDecimal.valueOf(50), PaymentStatus.PENDING,
                         LocalDateTime.now().minusMinutes(10), LocalDateTime.now(), 0);
 
-                when(paymentGateway.findPendingWithRetryCountLessThan3())
+                when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment, validPayment));
                 when(procPagGateway.processarPagamento(any(ProcPagRequest.class)))
                         .thenThrow(new RuntimeException("Erro inesperado"))

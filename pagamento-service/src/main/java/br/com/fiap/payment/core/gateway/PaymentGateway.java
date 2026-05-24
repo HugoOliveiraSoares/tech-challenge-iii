@@ -13,6 +13,6 @@ public interface PaymentGateway {
 
     Payment save(Payment payment);
 
-    List<Payment> findPendingWithRetryCountLessThan3();
+    List<Payment> findPendingPayments();
 
 }

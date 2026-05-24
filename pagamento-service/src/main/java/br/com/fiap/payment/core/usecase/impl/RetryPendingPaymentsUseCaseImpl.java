@@ -26,7 +26,7 @@ public class RetryPendingPaymentsUseCaseImpl implements RetryPendingPaymentsUseC
 
     @Override
     public void execute() {
-        var pendingPayments = paymentGateway.findPendingWithRetryCountLessThan3();
+        var pendingPayments = paymentGateway.findPendingPayments();
 
         if (pendingPayments.isEmpty()) {
             log.info("Nenhum pagamento pendente para reprocessar");
