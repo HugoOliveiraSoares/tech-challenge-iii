@@ -109,12 +109,10 @@ sequenceDiagram
   Note over HTTP: Circuit Breaker avalia<br/>(50% falha → OPEN)
 
   HTTP->>HTTP: requisicaoFallback()
-  Note over HTTP: Lança ExternalServiceUnavailableException
+  Note over HTTP: Retorna "PENDING" (fallback real)
 
-  HTTP-->>UseCase: ExternalServiceUnavailableException
-
-  UseCase->>UseCase: handleFailure()
-  Note over UseCase: Status continua PENDING<br/>(não estava APPROVED)
+  HTTP-->>UseCase: "PENDING"
+  Note over UseCase: mapProcpagStatus → PENDING
 
   UseCase->>DB: save(payment)
   UseCase->>Producer: publishPaymentPending(PaymentEvent)

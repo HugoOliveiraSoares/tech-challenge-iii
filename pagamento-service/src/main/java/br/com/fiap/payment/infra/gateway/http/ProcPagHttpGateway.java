@@ -85,7 +85,7 @@ public class ProcPagHttpGateway implements ProcPagGateway {
     }
 
     public String requisicaoFallback(ProcPagRequest request, Exception ex) {
-        log.error("Fallback acionado para pagamento {}: {}", request.paymentId(), ex.getMessage());
-        throw new ExternalServiceUnavailableException("Serviço Procpag indisponível", ex);
+        log.warn("Fallback ativado: assumindo PENDING para pagamento {}", request.paymentId(), ex);
+        return "PENDING";
     }
 }

@@ -289,11 +289,10 @@ sequenceDiagram
 
   Note over HTTP: Circuit Breaker avalia<br/>(50% falha → OPEN)
   HTTP->>HTTP: requisicaoFallback()
-  Note over HTTP: Lança ExternalServiceUnavailableException
+  Note over HTTP: Retorna "PENDING" (fallback real)
 
-  HTTP-->>UseCase: ExternalServiceUnavailableException
-  UseCase->>UseCase: handleFailure()
-  Note over UseCase: Status continua PENDING
+  HTTP-->>UseCase: "PENDING"
+  Note over UseCase: mapProcpagStatus → PENDING
 
   UseCase->>Producer: publishPaymentPending(PaymentEvent)
   Producer->>Kafka: Publica pagamento-pendente
@@ -514,6 +513,6 @@ Aplicada exclusivamente no `pagamento-service` para chamadas HTTP ao Procpag:
 
 A ordem de execução é: **Circuit Breaker → Retry** (aspectos configurados com `circuitBreakerAspectOrder=1`, `retryAspectOrder=2`).
 
-O fallback (`requisicaoFallback`) lança `ExternalServiceUnavailableException`, que é capturada pelo `ProcessPaymentUseCaseImpl` para persistir o status `PENDING` e publicar `pagamento-pendente`.
+O fallback (`requisicaoFallback`) retorna `"PENDING"` diretamente, permitindo que o fluxo normal persista o status e publique `pagamento-pendente`.
 
 > Para detalhes completos, consulte [resilience.md](resilience.md).
