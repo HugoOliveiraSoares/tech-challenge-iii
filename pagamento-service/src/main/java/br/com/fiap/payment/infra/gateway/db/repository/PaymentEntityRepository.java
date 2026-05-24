@@ -13,8 +13,6 @@ import br.com.fiap.payment.infra.gateway.db.entity.PaymentEntity;
 
 public interface PaymentEntityRepository extends JpaRepository<PaymentEntity, UUID> {
 
-    Optional<PaymentEntity> findPaymentByOrderIdAndPaymentStatus(String orderId, PaymentStatus status);
-
     Optional<PaymentEntity> findPaymentByOrderId(String orderId);
 
     @Query("SELECT p FROM PaymentEntity p WHERE p.paymentStatus = :status AND p.retryCount < :count")

@@ -12,7 +12,6 @@ import br.com.fiap.payment.core.domain.PaymentMapperUtil;
 import br.com.fiap.payment.core.domain.PaymentStatus;
 import br.com.fiap.payment.core.domain.ProcPagRequest;
 import br.com.fiap.payment.core.exception.ExternalServiceUnavailableException;
-import br.com.fiap.payment.core.exception.OrderAlreadyCreatedException;
 import br.com.fiap.payment.core.exception.PaymentProcessingException;
 import br.com.fiap.payment.core.gateway.PaymentEventGateway;
 import br.com.fiap.payment.core.gateway.PaymentGateway;
@@ -38,7 +37,6 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
      * Processa pagamento de um pedido com base no evento recebido.
      * 
      * @param event Evento de criação de pedido com dados para pagamento
-     * @throws OrderAlreadyCreatedException se já existir pagamento para o pedido
      * @throws IllegalArgumentException     se dados do evento forem inválidos
      */
     @Override

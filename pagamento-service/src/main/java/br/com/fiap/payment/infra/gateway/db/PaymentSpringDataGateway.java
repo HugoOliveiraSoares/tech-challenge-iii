@@ -24,14 +24,6 @@ public class PaymentSpringDataGateway implements PaymentGateway {
     private final PaymentMapper paymentMapper;
 
     @Override
-    public Optional<Payment> findPaymentByOrderIdAndApproved(String orderId) {
-        return paymentEntityRepository
-                .findPaymentByOrderIdAndPaymentStatus(orderId, PaymentStatus.APPROVED)
-                .map(paymentMapper::toDomain);
-
-    }
-
-    @Override
     public Payment save(Payment payment) {
         var savedEntity = paymentEntityRepository.save(paymentMapper.toEntity(payment));
         return paymentMapper.toDomain(savedEntity);

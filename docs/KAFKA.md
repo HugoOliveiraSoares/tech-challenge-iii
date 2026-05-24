@@ -154,12 +154,14 @@ spring:
   kafka:
     consumer:
       bootstrap-servers: kafka:9092
-      group-id: pedido-group
+      group-id: pagamento-group
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       properties:
-        spring.json.trusted.packages: "*"
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: br.com.fiap.payment.core.domain
 ```
 
 ---
@@ -253,6 +255,19 @@ Kafka Consumer retry (entrega da mensagem ao listener)
   - O **Consumer retry** retenta a **entrega da mensagem** — se a exceção não for tratada pelo Resilience4j (ou se o listener falhar por outro motivo), o Kafka reentrega a mensagem inteira.
 
 - **Tempo máximo estimado**: Se as 3 camadas forem acionadas sequencialmente (pior caso), o tempo total pode chegar a ~55s, conforme detalhado em [docs/resilience.md](resilience.md).
+
+### Poison Pill Handling
+
+Mensagens com formato inválido (JSON malformado, schema incompatível) são detectadas pelo
+`ErrorHandlingDeserializer` antes de chegarem ao listener. O fluxo é:
+
+1. `JsonDeserializer` lança `SerializationException`
+2. `ErrorHandlingDeserializer` captura e produz um `DeserializationException`
+3. Spring Kafka detecta o `DeserializationException` e chama `DefaultErrorHandler.handleDeserializationException()`
+4. A mensagem é enviada para a DLQ `pedido-criado-dlq` sem tentativas de retry
+5. O offset é avançado (seek) para a próxima mensagem válida
+
+Isso impede o loop infinito que ocorreria sem o `ErrorHandlingDeserializer`.
 
 > ⚠️ A configuração detalhada do Resilience4j (Retry, Circuit Breaker, Timeout, Fallback) e do worker agendado de reprocessamento está documentada em [docs/resilience.md](resilience.md).
 

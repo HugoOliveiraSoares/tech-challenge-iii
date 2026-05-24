@@ -60,12 +60,12 @@ public class Payment {
     }
 
     public void changeStatusTo(PaymentStatus newStatus) {
+        if (newStatus == null) {
+            throw new IllegalArgumentException("The paymentStatus can't be null");
+        }
         if (this.paymentStatus == PaymentStatus.APPROVED) {
             throw new IllegalStateException(
                     "Status cannot transition from APPROVED to " + newStatus);
-        }
-        if (newStatus == null) {
-            throw new IllegalArgumentException("The paymentStatus can't be null");
         }
         this.paymentStatus = newStatus;
     }

@@ -15,6 +15,7 @@ import br.com.fiap.payment.infra.gateway.http.dto.ProcPagHttpRequest;
 import br.com.fiap.payment.infra.gateway.http.dto.ProcPagHttpResponse;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
+import java.math.BigDecimal;
 import java.net.http.HttpClient;
 import java.time.Duration;
 
@@ -56,7 +57,7 @@ public class ProcPagHttpGateway implements ProcPagGateway {
         ProcPagHttpRequest httpRequest = new ProcPagHttpRequest(
                 String.valueOf(request.paymentId()),
                 request.clientId(),
-                request.amount().longValue());
+                request.amount().multiply(BigDecimal.valueOf(100)).longValue());
 
         try {
             log.info("Enviando requisicao para prog pag, Cliente {}, PagamentoId {}", httpRequest.clienteId(),

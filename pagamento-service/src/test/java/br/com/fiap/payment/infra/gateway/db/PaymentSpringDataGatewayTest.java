@@ -91,32 +91,6 @@ class PaymentSpringDataGatewayTest {
     }
 
     @Test
-    @DisplayName("should return mapped Payment when findByOrderIdAndApproved finds entity")
-    void shouldReturnPayment_When_FindByOrderIdAndApprovedFinds() {
-        when(repository.findPaymentByOrderIdAndPaymentStatus(orderId, PaymentStatus.APPROVED))
-                .thenReturn(Optional.of(entity));
-
-        Optional<Payment> result = gateway.findPaymentByOrderIdAndApproved(orderId);
-
-        assertThat(result).isPresent();
-        assertThat(result.get().getPaymentId()).isEqualTo(paymentId);
-        assertThat(result.get().getOrderId()).isEqualTo(orderId);
-        verify(repository).findPaymentByOrderIdAndPaymentStatus(orderId, PaymentStatus.APPROVED);
-    }
-
-    @Test
-    @DisplayName("should return Optional.empty when findByOrderIdAndApproved does not find")
-    void shouldReturnEmpty_When_FindByOrderIdAndApprovedNotFound() {
-        when(repository.findPaymentByOrderIdAndPaymentStatus(orderId, PaymentStatus.APPROVED))
-                .thenReturn(Optional.empty());
-
-        Optional<Payment> result = gateway.findPaymentByOrderIdAndApproved(orderId);
-
-        assertThat(result).isEmpty();
-        verify(repository).findPaymentByOrderIdAndPaymentStatus(orderId, PaymentStatus.APPROVED);
-    }
-
-    @Test
     @DisplayName("should save entity and return mapped Payment")
     void shouldSaveAndReturnPayment() {
         when(repository.save(any(PaymentEntity.class))).thenReturn(entity);
