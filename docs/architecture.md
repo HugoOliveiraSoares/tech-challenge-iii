@@ -88,7 +88,7 @@ C4Container
   Rel(pagamento_producer, kafka_broker, "Publica eventos de pagamento", "JSON")
   Rel(pagamento_scheduler, pagamento_retry_usecase, "execute()", "Spring DI")
   Rel(pagamento_retry_usecase, pagamento_http, "processarPagamento(ProcPagRequest)", "Spring DI")
-  Rel(pagamento_retry_usecase, pagamento_db, "findPendingWithRetryCountLessThan3 / save", "JPA/Hibernate")
+  Rel(pagamento_retry_usecase, pagamento_db, "findPendingPayments / save", "JPA/Hibernate")
   Rel(pagamento_retry_usecase, pagamento_producer, "publishPaymentApproval / publishPaymentPending", "Spring DI")
   Rel(pedido_api, pedido_db, "JPA/Hibernate", "JDBC")
 ```
@@ -331,7 +331,7 @@ sequenceDiagram
 
   Note over Scheduler: A cada ${payment.retry.scheduled-interval}ms
   Scheduler->>UseCase: execute()
-  UseCase->>DB: findPendingWithRetryCountLessThan3()
+  UseCase->>DB: findPendingPayments()
   DB-->>UseCase: List<Payment> PENDING
 
   loop Para cada pagamento pendente

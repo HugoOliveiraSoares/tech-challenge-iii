@@ -172,7 +172,7 @@ O reprocessamento de pagamentos pendentes é feito por um worker **agendado** (`
 |-----------|--------|--------|
 | Agendador | `PaymentRetryScheduler` | `@Scheduled(fixedDelayString = "${payment.retry.scheduled-interval:60000}")` — dispara a cada 60s (configurável) |
 | Caso de Uso | `RetryPendingPaymentsUseCaseImpl` | Orquestra a lógica de reprocessamento |
-| Gateway | `PaymentGateway#findPendingWithRetryCountLessThan3()` | JPQL: `WHERE status = PENDING AND retryCount < 3` |
+| Gateway | `PaymentGateway#findPendingPayments()` | JPQL: `WHERE status = PENDING AND retryCount < 3` |
 
 ### Fluxo
 
@@ -225,7 +225,7 @@ public class RetryPendingPaymentsUseCaseImpl implements RetryPendingPaymentsUseC
 
     @Override
     public void execute() {
-        var pendingPayments = paymentGateway.findPendingWithRetryCountLessThan3();
+        var pendingPayments = paymentGateway.findPendingPayments();
         // ... reprocessa cada pagamento
     }
 }

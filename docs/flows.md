@@ -186,7 +186,7 @@ sequenceDiagram
 
   Note over Scheduler: A cada ${payment.retry.scheduled-interval}ms
   Scheduler->>UseCase: execute()
-  UseCase->>DB: findPendingWithRetryCountLessThan3()
+  UseCase->>DB: findPendingPayments()
   DB-->>UseCase: List<Payment> PENDING
 
   loop Para cada pagamento pendente
