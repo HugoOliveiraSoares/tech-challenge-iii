@@ -2,7 +2,6 @@ package br.com.fiap.payment.core.usecase.impl;
 
 import java.time.LocalDateTime;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import br.com.fiap.payment.core.domain.Payment;
@@ -27,9 +26,6 @@ public class RetryPendingPaymentsUseCaseImpl implements RetryPendingPaymentsUseC
     private final ProcPagGateway procPagGateway;
     private final PaymentEventGateway eventGateway;
 
-    @Value("${payment.retry.max-attempts:3}")
-    private int maxRetryAttempts;
-
     @Override
     public void execute() {
         var pendingPayments = paymentGateway.findPendingWithRetryCountLessThan3();
@@ -53,8 +49,8 @@ public class RetryPendingPaymentsUseCaseImpl implements RetryPendingPaymentsUseC
     private void processPayment(Payment payment) {
         var currentRetryCount = payment.getRetryCount() != null ? payment.getRetryCount() : 0;
 
-        log.info("Reprocessando pagamento {} (tentativa {}/{})",
-                payment.getPaymentId(), currentRetryCount + 1, maxRetryAttempts);
+        log.info("Reprocessando pagamento {} (tentativa {})",
+                payment.getPaymentId(), currentRetryCount + 1);
 
         var request = new ProcPagRequest(
                 payment.getPaymentId(),
@@ -66,7 +62,7 @@ public class RetryPendingPaymentsUseCaseImpl implements RetryPendingPaymentsUseC
             PaymentStatus newStatus = mapProcpagStatus(procpagStatus);
 
             payment.changeStatusTo(newStatus);
-            payment.setRetryCount(currentRetryCount + 1);
+            payment.incrementRetryCount();
             paymentGateway.save(payment);
 
             var event = buildPaymentEvent(payment);
@@ -85,7 +81,7 @@ public class RetryPendingPaymentsUseCaseImpl implements RetryPendingPaymentsUseC
 
     private void handleRetryFailure(Payment payment, int currentRetryCount, Exception cause) {
         log.warn("Falha no reprocessamento do pagamento {}: {}", payment.getPaymentId(), cause.getMessage());
-        payment.setRetryCount(currentRetryCount + 1);
+        payment.incrementRetryCount();
         paymentGateway.save(payment);
 
         var event = buildPaymentEvent(payment);

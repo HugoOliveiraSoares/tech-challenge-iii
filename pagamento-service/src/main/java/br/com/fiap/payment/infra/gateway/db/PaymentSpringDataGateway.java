@@ -3,6 +3,7 @@ package br.com.fiap.payment.infra.gateway.db;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import br.com.fiap.payment.core.domain.Payment;
@@ -15,6 +16,9 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class PaymentSpringDataGateway implements PaymentGateway {
+
+    @Value("${payment.retry.max-attempts:3}")
+    private int maxRetryAttempts;
 
     private final PaymentEntityRepository paymentEntityRepository;
 
@@ -42,7 +46,7 @@ public class PaymentSpringDataGateway implements PaymentGateway {
     @Override
     public List<Payment> findPendingWithRetryCountLessThan3() {
         return paymentEntityRepository
-                .findPendingWithRetryCountLessThan3()
+                .findByPaymentStatusAndRetryCount(PaymentStatus.PENDING, maxRetryAttempts)
                 .stream()
                 .map(PaymentMapper::toDomain)
                 .toList();

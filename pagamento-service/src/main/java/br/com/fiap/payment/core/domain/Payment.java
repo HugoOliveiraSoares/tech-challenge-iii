@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 public class Payment {
@@ -17,7 +16,6 @@ public class Payment {
     private PaymentStatus paymentStatus;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    @Setter
     private Integer retryCount;
 
     public Payment(UUID paymentId, String orderId, String clientId, BigDecimal totalAmount,
@@ -61,6 +59,10 @@ public class Payment {
                     "Status cannot transition from APPROVED to " + newStatus);
         }
         this.setPaymentStatus(newStatus);
+    }
+
+    public void incrementRetryCount() {
+        this.retryCount = (this.retryCount == null ? 0 : this.retryCount) + 1;
     }
 
     private void setPaymentId(UUID paymentId) {

@@ -25,7 +25,6 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import br.com.fiap.payment.core.domain.Payment;
 import br.com.fiap.payment.core.domain.PaymentEvent;
@@ -78,8 +77,6 @@ class RetryPendingPaymentsUseCaseImplTest {
                 PaymentStatus.APPROVED, LocalDateTime.now().minusMinutes(10), LocalDateTime.now(), 0);
         exhaustedPayment = new Payment(paymentId, ORDER_ID, CLIENT_ID, TOTAL_AMOUNT,
                 PaymentStatus.PENDING, LocalDateTime.now().minusMinutes(10), LocalDateTime.now(), 3);
-
-        ReflectionTestUtils.setField(useCase, "maxRetryAttempts", 3);
     }
 
     @Nested

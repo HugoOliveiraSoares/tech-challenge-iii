@@ -17,10 +17,6 @@ public interface PaymentEntityRepository extends JpaRepository<PaymentEntity, UU
 
     Optional<PaymentEntity> findPaymentByOrderId(String orderId);
 
-    default List<PaymentEntity> findPendingWithRetryCountLessThan3() {
-        return findByPaymentStatusAndRetryCount(PaymentStatus.PENDING, 3);
-    }
-
     @Query("SELECT p FROM PaymentEntity p WHERE p.paymentStatus = :status AND p.retryCount < :count")
     List<PaymentEntity> findByPaymentStatusAndRetryCount(
             @Param("status") PaymentStatus status,
