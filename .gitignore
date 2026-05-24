@@ -23,3 +23,7 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
+
+### Keys ###
+auth-service/src/main/resources/keys/app.key
+*.key
