@@ -71,12 +71,36 @@ class RetryPendingPaymentsUseCaseImplTest {
     @BeforeEach
     void setUp() {
         var paymentId = UUID.randomUUID();
-        pendingPayment = new Payment(paymentId, ORDER_ID, CLIENT_ID, TOTAL_AMOUNT,
-                PaymentStatus.PENDING, LocalDateTime.now().minusMinutes(10), LocalDateTime.now(), 0);
-        approvedPayment = new Payment(paymentId, ORDER_ID, CLIENT_ID, TOTAL_AMOUNT,
-                PaymentStatus.APPROVED, LocalDateTime.now().minusMinutes(10), LocalDateTime.now(), 0);
-        exhaustedPayment = new Payment(paymentId, ORDER_ID, CLIENT_ID, TOTAL_AMOUNT,
-                PaymentStatus.PENDING, LocalDateTime.now().minusMinutes(10), LocalDateTime.now(), 3);
+        pendingPayment = Payment.builder()
+                .paymentId(paymentId)
+                .orderId(ORDER_ID)
+                .clientId(CLIENT_ID)
+                .totalAmount(TOTAL_AMOUNT)
+                .paymentStatus(PaymentStatus.PENDING)
+                .createdAt(LocalDateTime.now().minusMinutes(10))
+                .updatedAt(LocalDateTime.now())
+                .retryCount(0)
+                .build();
+        approvedPayment = Payment.builder()
+                .paymentId(paymentId)
+                .orderId(ORDER_ID)
+                .clientId(CLIENT_ID)
+                .totalAmount(TOTAL_AMOUNT)
+                .paymentStatus(PaymentStatus.APPROVED)
+                .createdAt(LocalDateTime.now().minusMinutes(10))
+                .updatedAt(LocalDateTime.now())
+                .retryCount(0)
+                .build();
+        exhaustedPayment = Payment.builder()
+                .paymentId(paymentId)
+                .orderId(ORDER_ID)
+                .clientId(CLIENT_ID)
+                .totalAmount(TOTAL_AMOUNT)
+                .paymentStatus(PaymentStatus.PENDING)
+                .createdAt(LocalDateTime.now().minusMinutes(10))
+                .updatedAt(LocalDateTime.now())
+                .retryCount(3)
+                .build();
     }
 
     @Nested
@@ -165,9 +189,16 @@ class RetryPendingPaymentsUseCaseImplTest {
             @Test
             @DisplayName("deve reprocessar multiplos pagamentos pendentes")
             void deve_ReprocessarMultiplosPagamentos() {
-                var payment2 = new Payment(UUID.randomUUID(), "order-789", "client-999",
-                        BigDecimal.valueOf(50), PaymentStatus.PENDING,
-                        LocalDateTime.now().minusMinutes(10), LocalDateTime.now(), 0);
+                var payment2 = Payment.builder()
+                        .paymentId(UUID.randomUUID())
+                        .orderId("order-789")
+                        .clientId("client-999")
+                        .totalAmount(BigDecimal.valueOf(50))
+                        .paymentStatus(PaymentStatus.PENDING)
+                        .createdAt(LocalDateTime.now().minusMinutes(10))
+                        .updatedAt(LocalDateTime.now())
+                        .retryCount(0)
+                        .build();
 
                 when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment, payment2));
@@ -302,9 +333,16 @@ class RetryPendingPaymentsUseCaseImplTest {
             @Test
             @DisplayName("deve continuar processando outros pagamentos quando um falhar com excecao inesperada")
             void deve_Continuar_Quando_UmPagamentoLancarExcecaoInesperada() {
-                var validPayment = new Payment(UUID.randomUUID(), "order-valid", CLIENT_ID,
-                        BigDecimal.valueOf(50), PaymentStatus.PENDING,
-                        LocalDateTime.now().minusMinutes(10), LocalDateTime.now(), 0);
+                var validPayment = Payment.builder()
+                        .paymentId(UUID.randomUUID())
+                        .orderId("order-valid")
+                        .clientId(CLIENT_ID)
+                        .totalAmount(BigDecimal.valueOf(50))
+                        .paymentStatus(PaymentStatus.PENDING)
+                        .createdAt(LocalDateTime.now().minusMinutes(10))
+                        .updatedAt(LocalDateTime.now())
+                        .retryCount(0)
+                        .build();
 
                 when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment, validPayment));

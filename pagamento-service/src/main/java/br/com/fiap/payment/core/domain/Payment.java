@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
@@ -18,39 +19,44 @@ public class Payment {
     private LocalDateTime updatedAt;
     private Integer retryCount;
 
-    public Payment(UUID paymentId, String orderId, String clientId, BigDecimal totalAmount,
-            PaymentStatus paymentStatus) {
-        this.setPaymentId(paymentId);
-        this.setOrderId(orderId);
-        this.setClientId(clientId);
-        this.setTotalAmount(totalAmount);
-        this.setPaymentStatus(paymentStatus);
-        this.retryCount = 0;
-    }
-
-    public Payment(UUID paymentId, String orderId, String clientId, BigDecimal totalAmount,
-            PaymentStatus paymentStatus, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.setPaymentId(paymentId);
-        this.setOrderId(orderId);
-        this.setClientId(clientId);
-        this.setTotalAmount(totalAmount);
-        this.setPaymentStatus(paymentStatus);
-        this.setCreatedAt(createdAt);
-        this.setUpdatedAt(updatedAt);
-        this.retryCount = 0;
-    }
-
-    public Payment(UUID paymentId, String orderId, String clientId, BigDecimal totalAmount,
+    @Builder
+    private Payment(UUID paymentId, String orderId, String clientId, BigDecimal totalAmount,
             PaymentStatus paymentStatus, LocalDateTime createdAt, LocalDateTime updatedAt,
             Integer retryCount) {
-        this.setPaymentId(paymentId);
-        this.setOrderId(orderId);
-        this.setClientId(clientId);
-        this.setTotalAmount(totalAmount);
-        this.setPaymentStatus(paymentStatus);
-        this.setCreatedAt(createdAt);
-        this.setUpdatedAt(updatedAt);
+        if (paymentId == null) {
+            throw new IllegalArgumentException("The paymentId can't be null");
+        }
+        if (orderId == null) {
+            throw new IllegalArgumentException("The orderId can't be null");
+        }
+        if (clientId == null) {
+            throw new IllegalArgumentException("The clientId can't be null");
+        }
+        if (totalAmount == null) {
+            throw new IllegalArgumentException("The totalAmount can't be null");
+        }
+        if (paymentStatus == null) {
+            throw new IllegalArgumentException("The paymentStatus can't be null");
+        }
+        this.paymentId = paymentId;
+        this.orderId = orderId;
+        this.clientId = clientId;
+        this.totalAmount = totalAmount;
+        this.paymentStatus = paymentStatus;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
         this.retryCount = retryCount;
+    }
+
+    public static Payment createPending(String orderId, String clientId, BigDecimal totalAmount) {
+        return Payment.builder()
+                .paymentId(UUID.randomUUID())
+                .orderId(orderId)
+                .clientId(clientId)
+                .totalAmount(totalAmount)
+                .paymentStatus(PaymentStatus.PENDING)
+                .retryCount(0)
+                .build();
     }
 
     public void changeStatusTo(PaymentStatus newStatus) {
@@ -58,54 +64,14 @@ public class Payment {
             throw new IllegalStateException(
                     "Status cannot transition from APPROVED to " + newStatus);
         }
-        this.setPaymentStatus(newStatus);
+        if (newStatus == null) {
+            throw new IllegalArgumentException("The paymentStatus can't be null");
+        }
+        this.paymentStatus = newStatus;
     }
 
     public void incrementRetryCount() {
         this.retryCount = (this.retryCount == null ? 0 : this.retryCount) + 1;
-    }
-
-    private void setPaymentId(UUID paymentId) {
-        if (paymentId == null) {
-            throw new IllegalArgumentException("The paymentId can't be null");
-        }
-        this.paymentId = paymentId;
-    }
-
-    private void setOrderId(String orderId) {
-        if (orderId == null) {
-            throw new IllegalArgumentException("The orderId can't be null");
-        }
-        this.orderId = orderId;
-    }
-
-    private void setClientId(String clientId) {
-        if (clientId == null) {
-            throw new IllegalArgumentException("The clientId can't be null");
-        }
-        this.clientId = clientId;
-    }
-
-    private void setTotalAmount(BigDecimal totalAmount) {
-        if (totalAmount == null) {
-            throw new IllegalArgumentException("The totalAmount can't be null");
-        }
-        this.totalAmount = totalAmount;
-    }
-
-    private void setPaymentStatus(PaymentStatus paymentStatus) {
-        if (paymentStatus == null) {
-            throw new IllegalArgumentException("The paymentStatus can't be null");
-        }
-        this.paymentStatus = paymentStatus;
-    }
-
-    private void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    private void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
 }

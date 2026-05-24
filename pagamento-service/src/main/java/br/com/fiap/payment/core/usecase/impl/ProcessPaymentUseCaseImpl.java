@@ -90,12 +90,10 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
     private Payment resolvePayment(OrderEvent event) {
         Optional<Payment> existing = paymentGateway.findPaymentByOrderId(event.orderId());
         if (existing.isEmpty()) {
-            return new Payment(
-                    UUID.randomUUID(),
+            return Payment.createPending(
                     event.orderId(),
                     event.clientId(),
-                    event.totalAmount(),
-                    PaymentStatus.PENDING);
+                    event.totalAmount());
         }
         Payment payment = existing.get();
         if (payment.getPaymentStatus() == PaymentStatus.APPROVED) {

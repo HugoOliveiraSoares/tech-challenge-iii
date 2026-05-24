@@ -75,10 +75,26 @@ class ProcessPaymentUseCaseImplTest {
         validEvent = new OrderEvent(ORDER_ID, CLIENT_ID, TOTAL_AMOUNT, LocalDateTime.now());
 
         var paymentId = UUID.randomUUID();
-        pendingPayment = new Payment(paymentId, ORDER_ID, CLIENT_ID, TOTAL_AMOUNT,
-                PaymentStatus.PENDING, LocalDateTime.now(), LocalDateTime.now());
-        approvedPayment = new Payment(paymentId, ORDER_ID, CLIENT_ID, TOTAL_AMOUNT,
-                PaymentStatus.APPROVED, LocalDateTime.now(), LocalDateTime.now());
+        pendingPayment = Payment.builder()
+                .paymentId(paymentId)
+                .orderId(ORDER_ID)
+                .clientId(CLIENT_ID)
+                .totalAmount(TOTAL_AMOUNT)
+                .paymentStatus(PaymentStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .retryCount(0)
+                .build();
+        approvedPayment = Payment.builder()
+                .paymentId(paymentId)
+                .orderId(ORDER_ID)
+                .clientId(CLIENT_ID)
+                .totalAmount(TOTAL_AMOUNT)
+                .paymentStatus(PaymentStatus.APPROVED)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .retryCount(0)
+                .build();
     }
 
     @Nested

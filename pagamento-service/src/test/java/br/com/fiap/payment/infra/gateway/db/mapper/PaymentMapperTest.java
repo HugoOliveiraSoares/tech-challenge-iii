@@ -40,8 +40,16 @@ class PaymentMapperTest {
     @Test
     @DisplayName("deve mapear Payment para PaymentEntity com todos os campos")
     void deve_MapearDomainParaEntity() {
-        var domain = new Payment(paymentId, "order-1", "client-1",
-                BigDecimal.valueOf(100), PaymentStatus.APPROVED, now, now, 0);
+        var domain = Payment.builder()
+                .paymentId(paymentId)
+                .orderId("order-1")
+                .clientId("client-1")
+                .totalAmount(BigDecimal.valueOf(100))
+                .paymentStatus(PaymentStatus.APPROVED)
+                .createdAt(now)
+                .updatedAt(now)
+                .retryCount(0)
+                .build();
 
         PaymentEntity result = PaymentMapper.toEntity(domain);
 

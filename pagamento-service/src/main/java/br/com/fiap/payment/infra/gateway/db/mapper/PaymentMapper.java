@@ -9,15 +9,16 @@ public class PaymentMapper {
     }
 
     public static Payment toDomain(PaymentEntity entity) {
-        return new Payment(
-                entity.getPaymentId(),
-                entity.getOrderId(),
-                entity.getClientId(),
-                entity.getTotalAmount(),
-                entity.getPaymentStatus(),
-                entity.getCreatedAt(),
-                entity.getUpdatedAt(),
-                entity.getRetryCount());
+        return Payment.builder()
+                .paymentId(entity.getPaymentId())
+                .orderId(entity.getOrderId())
+                .clientId(entity.getClientId())
+                .totalAmount(entity.getTotalAmount())
+                .paymentStatus(entity.getPaymentStatus())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
+                .retryCount(entity.getRetryCount())
+                .build();
     }
 
     public static PaymentEntity toEntity(Payment domain) {

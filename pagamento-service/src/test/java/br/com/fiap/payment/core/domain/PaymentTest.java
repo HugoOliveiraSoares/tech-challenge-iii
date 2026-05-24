@@ -11,11 +11,18 @@ import org.junit.jupiter.api.Test;
 class PaymentTest {
 
     private Payment createPendingPayment() {
-        return new Payment(UUID.randomUUID(), "order-1", "client-1", BigDecimal.valueOf(100), PaymentStatus.PENDING);
+        return Payment.createPending("order-1", "client-1", BigDecimal.valueOf(100));
     }
 
     private Payment createApprovedPayment() {
-        return new Payment(UUID.randomUUID(), "order-1", "client-1", BigDecimal.valueOf(100), PaymentStatus.APPROVED);
+        return Payment.builder()
+                .paymentId(UUID.randomUUID())
+                .orderId("order-1")
+                .clientId("client-1")
+                .totalAmount(BigDecimal.valueOf(100))
+                .paymentStatus(PaymentStatus.APPROVED)
+                .retryCount(0)
+                .build();
     }
 
     @Test
