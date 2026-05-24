@@ -1,7 +1,6 @@
 package br.com.fiap.payment.core.usecase.impl;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -9,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import br.com.fiap.payment.core.domain.OrderEvent;
 import br.com.fiap.payment.core.domain.Payment;
-import br.com.fiap.payment.core.domain.PaymentEvent;
+import br.com.fiap.payment.core.domain.PaymentMapperUtil;
 import br.com.fiap.payment.core.domain.PaymentStatus;
 import br.com.fiap.payment.core.domain.ProcPagRequest;
 import br.com.fiap.payment.core.exception.ExternalServiceUnavailableException;
@@ -65,13 +64,13 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
 
             log.info("Status Procpag para pedido {}: {}", event.orderId(), procpagStatus);
 
-            PaymentStatus newStatus = mapProcpagStatus(procpagStatus);
+            PaymentStatus newStatus = PaymentMapperUtil.mapProcpagStatus(procpagStatus);
 
             payment.changeStatusTo(newStatus);
 
             paymentGateway.save(payment);
 
-            var paymentEvent = buildPaymentEvent(payment);
+            var paymentEvent = PaymentMapperUtil.buildPaymentEvent(payment);
 
             if (newStatus.equals(PaymentStatus.APPROVED)) {
                 eventGateway.publishPaymentApproval(paymentEvent);
@@ -120,25 +119,6 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
 
     }
 
-    private PaymentStatus mapProcpagStatus(String procpagStatus) {
-        return switch (procpagStatus.toUpperCase()) {
-            case "ACCEPTED" -> PaymentStatus.APPROVED;
-            case "PENDING" -> PaymentStatus.PENDING;
-            default -> {
-                log.warn("Status desconhecido Procpag: {}, assumindo REJECTED", procpagStatus);
-                yield PaymentStatus.PENDING;
-            }
-        };
-    }
-
-    private PaymentEvent buildPaymentEvent(Payment payment) {
-        return new PaymentEvent(
-                payment.getOrderId(),
-                payment.getPaymentId().toString(),
-                payment.getTotalAmount(),
-                LocalDateTime.now());
-    }
-
     private void handleFailure(Payment payment, Exception cause) {
         if (payment.getPaymentStatus() == PaymentStatus.APPROVED) {
             log.warn("Pagamento {} já aprovado, ignorando tentativa de reverter para PENDING",
@@ -148,7 +128,7 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
         payment.changeStatusTo(PaymentStatus.PENDING);
         paymentGateway.save(payment);
 
-        var paymentEvent = buildPaymentEvent(payment);
+        var paymentEvent = PaymentMapperUtil.buildPaymentEvent(payment);
         try {
             eventGateway.publishPaymentPending(paymentEvent);
         } catch (Exception e) {

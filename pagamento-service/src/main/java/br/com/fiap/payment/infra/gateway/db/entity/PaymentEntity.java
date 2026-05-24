@@ -51,7 +51,7 @@ public class PaymentEntity implements Persistable<UUID> {
     @Override
     @Transient
     public boolean isNew() {
-        return paymentId == null;
+        return createdAt == null;
     }
 
     @PrePersist

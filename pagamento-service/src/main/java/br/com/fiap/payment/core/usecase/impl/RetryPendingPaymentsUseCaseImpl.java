@@ -1,11 +1,9 @@
 package br.com.fiap.payment.core.usecase.impl;
 
-import java.time.LocalDateTime;
-
 import org.springframework.stereotype.Service;
 
 import br.com.fiap.payment.core.domain.Payment;
-import br.com.fiap.payment.core.domain.PaymentEvent;
+import br.com.fiap.payment.core.domain.PaymentMapperUtil;
 import br.com.fiap.payment.core.domain.PaymentStatus;
 import br.com.fiap.payment.core.domain.ProcPagRequest;
 import br.com.fiap.payment.core.exception.ExternalServiceUnavailableException;
@@ -59,13 +57,13 @@ public class RetryPendingPaymentsUseCaseImpl implements RetryPendingPaymentsUseC
 
         try {
             var procpagStatus = procPagGateway.processarPagamento(request);
-            PaymentStatus newStatus = mapProcpagStatus(procpagStatus);
+            PaymentStatus newStatus = PaymentMapperUtil.mapProcpagStatus(procpagStatus);
 
             payment.changeStatusTo(newStatus);
             payment.incrementRetryCount();
             paymentGateway.save(payment);
 
-            var event = buildPaymentEvent(payment);
+            var event = PaymentMapperUtil.buildPaymentEvent(payment);
 
             if (newStatus == PaymentStatus.APPROVED) {
                 eventGateway.publishPaymentApproval(event);
@@ -84,7 +82,7 @@ public class RetryPendingPaymentsUseCaseImpl implements RetryPendingPaymentsUseC
         payment.incrementRetryCount();
         paymentGateway.save(payment);
 
-        var event = buildPaymentEvent(payment);
+        var event = PaymentMapperUtil.buildPaymentEvent(payment);
         try {
             eventGateway.publishPaymentPending(event);
         } catch (Exception e) {
@@ -92,22 +90,4 @@ public class RetryPendingPaymentsUseCaseImpl implements RetryPendingPaymentsUseC
         }
     }
 
-    private PaymentStatus mapProcpagStatus(String procpagStatus) {
-        return switch (procpagStatus.toUpperCase()) {
-            case "ACCEPTED" -> PaymentStatus.APPROVED;
-            case "PENDING" -> PaymentStatus.PENDING;
-            default -> {
-                log.warn("Status desconhecido Procpag: {}, assumindo REJECTED", procpagStatus);
-                yield PaymentStatus.PENDING;
-            }
-        };
-    }
-
-    private PaymentEvent buildPaymentEvent(Payment payment) {
-        return new PaymentEvent(
-                payment.getOrderId(),
-                payment.getPaymentId().toString(),
-                payment.getTotalAmount(),
-                LocalDateTime.now());
-    }
 }

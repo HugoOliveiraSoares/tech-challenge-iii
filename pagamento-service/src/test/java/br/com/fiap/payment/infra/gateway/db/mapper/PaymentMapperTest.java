@@ -82,16 +82,11 @@ class PaymentMapperTest {
     }
 
     @Test
-    @DisplayName("deve mapear PaymentEntity com paymentId nulo")
-    void deve_MapearComPaymentIdNulo() {
-        var entity = new PaymentEntity(null, "order-1", "client-1",
-                BigDecimal.valueOf(100), PaymentStatus.PENDING, 0, now, now);
+    @DisplayName("deve mapear PaymentEntity com createdAt nulo")
+    void deve_MapearComCreatedAtNulo() {
+        var entity = new PaymentEntity(UUID.randomUUID(), "order-1", "client-1",
+                BigDecimal.valueOf(100), PaymentStatus.PENDING, 0, null, null);
 
-        assertThatThrownBy(() -> PaymentMapper.toDomain(entity))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("The paymentId can't be null");
-
-        // PaymentEntity pode ter paymentId nulo (new entity)
         assertThat(entity.isNew()).isTrue();
     }
 }
