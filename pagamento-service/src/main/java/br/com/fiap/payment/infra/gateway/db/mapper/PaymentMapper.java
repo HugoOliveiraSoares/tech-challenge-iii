@@ -1,14 +1,14 @@
 package br.com.fiap.payment.infra.gateway.db.mapper;
 
+import org.springframework.stereotype.Component;
+
 import br.com.fiap.payment.core.domain.Payment;
 import br.com.fiap.payment.infra.gateway.db.entity.PaymentEntity;
 
+@Component
 public class PaymentMapper {
 
-    private PaymentMapper() {
-    }
-
-    public static Payment toDomain(PaymentEntity entity) {
+    public Payment toDomain(PaymentEntity entity) {
         return Payment.builder()
                 .paymentId(entity.getPaymentId())
                 .orderId(entity.getOrderId())
@@ -21,7 +21,7 @@ public class PaymentMapper {
                 .build();
     }
 
-    public static PaymentEntity toEntity(Payment domain) {
+    public PaymentEntity toEntity(Payment domain) {
         return new PaymentEntity(
                 domain.getPaymentId(),
                 domain.getOrderId(),

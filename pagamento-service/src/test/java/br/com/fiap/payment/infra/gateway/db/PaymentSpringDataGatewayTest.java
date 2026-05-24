@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import br.com.fiap.payment.core.domain.Payment;
 import br.com.fiap.payment.core.domain.PaymentStatus;
 import br.com.fiap.payment.infra.gateway.db.entity.PaymentEntity;
+import br.com.fiap.payment.infra.gateway.db.mapper.PaymentMapper;
 import br.com.fiap.payment.infra.gateway.db.repository.PaymentEntityRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,7 +30,6 @@ class PaymentSpringDataGatewayTest {
     @Mock
     private PaymentEntityRepository repository;
 
-    @InjectMocks
     private PaymentSpringDataGateway gateway;
 
     private PaymentEntity entity;
@@ -52,6 +52,7 @@ class PaymentSpringDataGatewayTest {
                 .updatedAt(now)
                 .retryCount(0)
                 .build();
+        gateway = new PaymentSpringDataGateway(repository, new PaymentMapper());
     }
 
     @Test

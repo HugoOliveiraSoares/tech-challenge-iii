@@ -16,6 +16,7 @@ import br.com.fiap.payment.infra.gateway.db.entity.PaymentEntity;
 
 class PaymentMapperTest {
 
+    private final PaymentMapper paymentMapper = new PaymentMapper();
     private final UUID paymentId = UUID.randomUUID();
     private final LocalDateTime now = LocalDateTime.now();
 
@@ -25,7 +26,7 @@ class PaymentMapperTest {
         var entity = new PaymentEntity(paymentId, "order-1", "client-1",
                 BigDecimal.valueOf(100), PaymentStatus.PENDING, 0, now, now);
 
-        Payment result = PaymentMapper.toDomain(entity);
+        Payment result = paymentMapper.toDomain(entity);
 
         assertThat(result.getPaymentId()).isEqualTo(paymentId);
         assertThat(result.getOrderId()).isEqualTo("order-1");
@@ -51,7 +52,7 @@ class PaymentMapperTest {
                 .retryCount(0)
                 .build();
 
-        PaymentEntity result = PaymentMapper.toEntity(domain);
+        PaymentEntity result = paymentMapper.toEntity(domain);
 
         assertThat(result.getPaymentId()).isEqualTo(paymentId);
         assertThat(result.getOrderId()).isEqualTo("order-1");
@@ -66,14 +67,14 @@ class PaymentMapperTest {
     @Test
     @DisplayName("deve lançar NullPointerException quando entity for nula")
     void deve_LancarNPE_Quando_EntityForNull() {
-        assertThatThrownBy(() -> PaymentMapper.toDomain(null))
+        assertThatThrownBy(() -> paymentMapper.toDomain(null))
                 .isInstanceOf(NullPointerException.class);
     }
 
     @Test
     @DisplayName("deve lançar NullPointerException quando domain for nulo")
     void deve_LancarNPE_Quando_DomainForNull() {
-        assertThatThrownBy(() -> PaymentMapper.toEntity(null))
+        assertThatThrownBy(() -> paymentMapper.toEntity(null))
                 .isInstanceOf(NullPointerException.class);
     }
 
@@ -83,7 +84,7 @@ class PaymentMapperTest {
         var entity = new PaymentEntity(paymentId, "order-1", "client-1",
                 BigDecimal.valueOf(100), PaymentStatus.PENDING, null, null, null);
 
-        Payment result = PaymentMapper.toDomain(entity);
+        Payment result = paymentMapper.toDomain(entity);
 
         assertThat(result.getCreatedAt()).isNull();
         assertThat(result.getUpdatedAt()).isNull();

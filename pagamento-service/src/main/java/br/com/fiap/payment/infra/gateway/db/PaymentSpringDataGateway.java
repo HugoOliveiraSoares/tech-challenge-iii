@@ -21,26 +21,27 @@ public class PaymentSpringDataGateway implements PaymentGateway {
     private int maxRetryAttempts;
 
     private final PaymentEntityRepository paymentEntityRepository;
+    private final PaymentMapper paymentMapper;
 
     @Override
     public Optional<Payment> findPaymentByOrderIdAndApproved(String orderId) {
         return paymentEntityRepository
                 .findPaymentByOrderIdAndPaymentStatus(orderId, PaymentStatus.APPROVED)
-                .map(PaymentMapper::toDomain);
+                .map(paymentMapper::toDomain);
 
     }
 
     @Override
     public Payment save(Payment payment) {
-        var savedEntity = paymentEntityRepository.save(PaymentMapper.toEntity(payment));
-        return PaymentMapper.toDomain(savedEntity);
+        var savedEntity = paymentEntityRepository.save(paymentMapper.toEntity(payment));
+        return paymentMapper.toDomain(savedEntity);
     }
 
     @Override
     public Optional<Payment> findPaymentByOrderId(String orderId) {
         return paymentEntityRepository
                 .findPaymentByOrderId(orderId)
-                .map(PaymentMapper::toDomain);
+                .map(paymentMapper::toDomain);
     }
 
     @Override
@@ -48,7 +49,7 @@ public class PaymentSpringDataGateway implements PaymentGateway {
         return paymentEntityRepository
                 .findByPaymentStatusAndRetryCount(PaymentStatus.PENDING, maxRetryAttempts)
                 .stream()
-                .map(PaymentMapper::toDomain)
+                .map(paymentMapper::toDomain)
                 .toList();
     }
 
