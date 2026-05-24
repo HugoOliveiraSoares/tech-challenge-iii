@@ -215,4 +215,44 @@ public record PaymentEvent(
         String paymentId,
         BigDecimal amount,
         LocalDateTime timestamp) {
-}```
+}
+```
+
+---
+
+## Estratégia de Retry Multicamada
+
+O sistema possui **3 camadas independentes de retry** que atuam em níveis diferentes da pilha. Elas são **complementares**, não redundantes — cada uma cobre um tipo de falha distinto.
+
+### As 3 Camadas
+
+| Camada | Local | Tentativas | Intervalo | Escopo |
+|--------|-------|-----------|-----------|--------|
+| **Producer retry** | `KafkaConfig.java:47` (`RETRIES_CONFIG`) | 3 | padrão Kafka (sem backoff explícito) | Envio da mensagem ao broker Kafka |
+| **Consumer retry** | `KafkaConfig.java:87` (`DefaultErrorHandler` + `FixedBackOff`) | 3 | 5s fixed | Reentrega da mensagem ao listener |
+| **Resilience4j Retry** | `application.properties` (`procPagRetry`) | 3 | 5s (exponential backoff via config) | Chamada HTTP externa ao Procpag |
+
+### Interação
+
+```
+Kafka Consumer retry (entrega da mensagem ao listener)
+  └─ Resilience4j retry (chamada HTTP ao Procpag)
+       └─ Producer retry (envio do evento de resultado ao broker)
+```
+
+1. **Producer retry** — Retry de infraestrutura. Se o broker Kafka estiver temporariamente indisponível, o producer reenvia a mensagem automaticamente. Se exaurido, a exceção propaga para o caller do `KafkaTemplate.send()`.
+
+2. **Consumer retry** — Quando o listener lança uma exceção (ex.: timeout ao chamar o Procpag), o `DefaultErrorHandler` reentrega a mensagem para o listener. Após 3 tentativas com 5s de intervalo, a mensagem é enviada para a DLQ `pedido-criado-dlq`. Exceções do tipo `IllegalArgumentException` não são retentadas (vão direto para a DLQ).
+
+3. **Resilience4j Retry** — Atua dentro do listener, especificamente na chamada HTTP ao Procpag (`ProcPagHttpGateway`). Se a requisição falhar (timeout, erro HTTP, etc.), o Resilience4j retenta com 3 tentativas e 5s de espera entre elas (configurado em `application.properties`). Se todos os retries falharem, o fallback é acionado e o pagamento permanece como `PENDING`.
+
+### Complementaridade
+
+- **Consumer retry + Resilience4j retry** atuam em escopos diferentes:
+  - O **Resilience4j** retenta a **chamada HTTP externa** — se o Procpag responder rápido na 2ª tentativa, não há necessidade de reentregar a mensagem Kafka.
+  - O **Consumer retry** retenta a **entrega da mensagem** — se a exceção não for tratada pelo Resilience4j (ou se o listener falhar por outro motivo), o Kafka reentrega a mensagem inteira.
+
+- **Tempo máximo estimado**: Se as 3 camadas forem acionadas sequencialmente (pior caso), o tempo total pode chegar a ~55s, conforme detalhado em [docs/resilience.md](resilience.md).
+
+> ⚠️ A configuração detalhada do Resilience4j (Retry, Circuit Breaker, Timeout, Fallback) e do worker agendado de reprocessamento está documentada em [docs/resilience.md](resilience.md).
+

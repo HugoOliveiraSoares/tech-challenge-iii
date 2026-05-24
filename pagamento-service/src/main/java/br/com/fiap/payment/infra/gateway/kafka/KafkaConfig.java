@@ -28,6 +28,39 @@ import org.springframework.util.backoff.FixedBackOff;
 import br.com.fiap.payment.core.domain.OrderEvent;
 import br.com.fiap.payment.core.domain.PaymentEvent;
 
+/**
+ * Configuração Kafka com estratégia de retry multicamada.
+ *
+ * <p>O sistema possui 3 camadas independentes de retry, cada uma atuando em um nível diferente.
+ * Elas são complementares, não redundantes:
+ *
+ * <ol>
+ *   <li><b>Producer retry</b> ({@code RETRIES_CONFIG = 3}): retry de infraestrutura para envio
+ *       de mensagens ao broker Kafka. Atua em falhas de rede temporárias. Se exaurido, a
+ *       exceção propaga para o caller do {@code KafkaTemplate.send()}.</li>
+ *   <li><b>Consumer retry</b> ({@link DefaultErrorHandler} + {@link FixedBackOff}(5s, 3)):
+ *       reentrega a mensagem ao listener se ele lançar uma exceção. Após 3 tentativas com
+ *       5s de intervalo, a mensagem é enviada para a DLQ {@code pedido-criado-dlq}.
+ *       Exceções do tipo {@link IllegalArgumentException} não são retentadas.</li>
+ *   <li><b>Resilience4j Retry</b> ({@code procPagRetry}): configurado em
+ *       {@code application.properties} com 3 tentativas e 5s de espera. Atua na chamada
+ *       HTTP externa ao Procpag dentro do listener.</li>
+ * </ol>
+ *
+ * <p><b>Interação entre as camadas:</b><pre>
+ * Kafka Consumer retry (entrega da mensagem ao listener)
+ *   └─ Resilience4j retry (chamada HTTP ao Procpag)
+ *        └─ Producer retry (envio do evento de resultado ao broker)
+ * </pre>
+ *
+ * O Resilience4j retry e o Kafka consumer retry atuam em escopos diferentes — o primeiro
+ * retenta a chamada HTTP externa; o segundo retenta a entrega da mensagem Kafka. O producer
+ * retry garante que os eventos de resultado ({@code pagamento-aprovado} / {@code pagamento-pendente})
+ * cheguem ao broker mesmo sob instabilidade de rede.
+ *
+ * @see br.com.fiap.payment.infra.gateway.http.ProcPagHttpGateway
+ * @see <a href="../../../../../../../../../../docs/resilience.html">docs/resilience.md</a>
+ */
 @Configuration
 @EnableKafka
 public class KafkaConfig {
