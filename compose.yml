@@ -66,6 +66,7 @@ services:
         kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic pedido-criado --partitions 1 --replication-factor 1
         kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic pagamento-aprovado --partitions 1 --replication-factor 1
         kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic pagamento-pendente --partitions 1 --replication-factor 1
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic pedido-criado-dlq --partitions 1 --replication-factor 1
     networks:
       - fase3net
 
