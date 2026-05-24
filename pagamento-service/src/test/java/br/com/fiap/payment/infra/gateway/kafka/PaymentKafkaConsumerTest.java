@@ -1,5 +1,9 @@
 package br.com.fiap.payment.infra.gateway.kafka;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.math.BigDecimal;
@@ -37,5 +41,20 @@ class PaymentKafkaConsumerTest {
 
         verify(processPaymentUseCase).execute(event);
         verify(ack).acknowledge();
+    }
+
+    @Test
+    @DisplayName("deve propagar exceção sem chamar ack quando use case lançar exceção")
+    void deve_PropagarExcecao_Quando_UseCaseLancarExcecao() {
+        doThrow(new RuntimeException("Erro inesperado"))
+                .when(processPaymentUseCase).execute(any());
+
+        var event = new OrderEvent("order-1", "client-1", BigDecimal.TEN, LocalDateTime.now());
+
+        assertThatThrownBy(() -> consumer.consumeOrderEvent(event, ack))
+                .isInstanceOf(RuntimeException.class);
+
+        verify(processPaymentUseCase).execute(event);
+        verify(ack, never()).acknowledge();
     }
 }

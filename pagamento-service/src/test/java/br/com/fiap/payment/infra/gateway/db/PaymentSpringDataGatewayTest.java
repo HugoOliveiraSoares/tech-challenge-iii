@@ -7,6 +7,8 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,6 +25,8 @@ import br.com.fiap.payment.core.domain.PaymentStatus;
 import br.com.fiap.payment.infra.gateway.db.entity.PaymentEntity;
 import br.com.fiap.payment.infra.gateway.db.mapper.PaymentMapper;
 import br.com.fiap.payment.infra.gateway.db.repository.PaymentEntityRepository;
+
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentSpringDataGatewayTest {
@@ -53,6 +57,7 @@ class PaymentSpringDataGatewayTest {
                 .retryCount(0)
                 .build();
         gateway = new PaymentSpringDataGateway(repository, new PaymentMapper());
+        ReflectionTestUtils.setField(gateway, "maxRetryAttempts", 3);
     }
 
     @Test
@@ -122,5 +127,31 @@ class PaymentSpringDataGatewayTest {
         assertThat(result.getOrderId()).isEqualTo(orderId);
         assertThat(result.getPaymentStatus()).isEqualTo(PaymentStatus.PENDING);
         verify(repository).save(any(PaymentEntity.class));
+    }
+
+    @Test
+    @DisplayName("deve retornar lista de Payment mapeados quando findPendingPayments encontrar entidades")
+    void deve_RetornarListaPayment_Quando_FindPendingPaymentsEncontrar() {
+        when(repository.findByPaymentStatusAndRetryCount(PaymentStatus.PENDING, 3))
+                .thenReturn(List.of(entity));
+
+        List<Payment> result = gateway.findPendingPayments();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getPaymentId()).isEqualTo(paymentId);
+        assertThat(result.get(0).getOrderId()).isEqualTo(orderId);
+        verify(repository).findByPaymentStatusAndRetryCount(PaymentStatus.PENDING, 3);
+    }
+
+    @Test
+    @DisplayName("deve retornar lista vazia quando findPendingPayments não encontrar entidades")
+    void deve_RetornarListaVazia_Quando_FindPendingPaymentsNaoEncontrar() {
+        when(repository.findByPaymentStatusAndRetryCount(PaymentStatus.PENDING, 3))
+                .thenReturn(Collections.emptyList());
+
+        List<Payment> result = gateway.findPendingPayments();
+
+        assertThat(result).isEmpty();
+        verify(repository).findByPaymentStatusAndRetryCount(PaymentStatus.PENDING, 3);
     }
 }
