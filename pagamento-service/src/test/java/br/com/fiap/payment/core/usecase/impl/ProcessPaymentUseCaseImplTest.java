@@ -102,12 +102,12 @@ class ProcessPaymentUseCaseImplTest {
     class Execute {
 
         @Nested
-        @DisplayName("quando fluxo feliz")
+        @DisplayName("when happy path")
         class HappyPath {
 
             @Test
-            @DisplayName("deve aprovar pagamento e publicar pagamento-aprovado quando Procpag retornar ACCEPTED")
-            void deve_AprovarPagamento_Quando_ProcpagRetornarAccepted() {
+            @DisplayName("should approve payment and publish pagamento-aprovado when Procpag returns ACCEPTED")
+            void shouldApprovePayment_When_ProcpagReturnsAccepted() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
                 when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
@@ -128,8 +128,8 @@ class ProcessPaymentUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve manter pagamento como PENDING e publicar pagamento-pendente quando Procpag retornar PENDING")
-            void deve_ManterComoPendente_Quando_ProcpagRetornarPending() {
+            @DisplayName("should keep payment as PENDING and publish pagamento-pendente when Procpag returns PENDING")
+            void shouldKeepPending_When_ProcpagReturnsPending() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
                 when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("PENDING");
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
@@ -144,8 +144,8 @@ class ProcessPaymentUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve tratar status desconhecido como PENDING quando Procpag retornar status inesperado")
-            void deve_TratarComoPendente_Quando_ProcpagRetornarStatusDesconhecido() {
+            @DisplayName("should treat unknown status as PENDING when Procpag returns unexpected status")
+            void shouldTreatAsPending_When_ProcpagReturnsUnknownStatus() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
                 when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("REJECTED");
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
@@ -160,8 +160,8 @@ class ProcessPaymentUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve reprocessar pagamento pendente existente quando pedido já possui pagamento PENDING")
-            void deve_ReprocessPaymentPendente_Quando_PagamentoExistentePendente() {
+            @DisplayName("should reprocess existing pending payment when order already has a PENDING payment")
+            void shouldReprocessPendingPayment_When_ExistingPaymentIsPending() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID))
                         .thenReturn(Optional.of(pendingPayment));
                 when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
@@ -180,8 +180,8 @@ class ProcessPaymentUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve passar dados corretos para o Procpag")
-            void deve_PassarDadosCorretosParaProcpag() {
+            @DisplayName("should pass correct data to Procpag")
+            void shouldPassCorrectDataToProcpag() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
                 when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
                 when(paymentGateway.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
@@ -197,12 +197,12 @@ class ProcessPaymentUseCaseImplTest {
         }
 
         @Nested
-        @DisplayName("quando validação falha")
+        @DisplayName("when validation fails")
         class Validation {
 
             @Test
-            @DisplayName("deve lançar IllegalArgumentException quando totalAmount for zero")
-            void deve_LancarIllegalArgumentException_Quando_TotalAmountForZero() {
+            @DisplayName("should throw IllegalArgumentException when totalAmount is zero")
+            void shouldThrowIllegalArgumentException_When_TotalAmountIsZero() {
                 var event = new OrderEvent(ORDER_ID, CLIENT_ID, BigDecimal.ZERO, LocalDateTime.now());
 
                 assertThatThrownBy(() -> useCase.execute(event))
@@ -213,8 +213,8 @@ class ProcessPaymentUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve lançar IllegalArgumentException quando totalAmount for negativo")
-            void deve_LancarIllegalArgumentException_Quando_TotalAmountForNegativo() {
+            @DisplayName("should throw IllegalArgumentException when totalAmount is negative")
+            void shouldThrowIllegalArgumentException_When_TotalAmountIsNegative() {
                 var event = new OrderEvent(ORDER_ID, CLIENT_ID, BigDecimal.valueOf(-10), LocalDateTime.now());
 
                 assertThatThrownBy(() -> useCase.execute(event))
@@ -225,8 +225,8 @@ class ProcessPaymentUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve lançar IllegalArgumentException quando clientId for nulo")
-            void deve_LancarIllegalArgumentException_Quando_ClientIdForNulo() {
+            @DisplayName("should throw IllegalArgumentException when clientId is null")
+            void shouldThrowIllegalArgumentException_When_ClientIdIsNull() {
                 var event = new OrderEvent(ORDER_ID, null, TOTAL_AMOUNT, LocalDateTime.now());
 
                 assertThatThrownBy(() -> useCase.execute(event))
@@ -237,8 +237,8 @@ class ProcessPaymentUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve lançar IllegalArgumentException quando clientId for vazio")
-            void deve_LancarIllegalArgumentException_Quando_ClientIdForVazio() {
+            @DisplayName("should throw IllegalArgumentException when clientId is blank")
+            void shouldThrowIllegalArgumentException_When_ClientIdIsBlank() {
                 var event = new OrderEvent(ORDER_ID, "  ", TOTAL_AMOUNT, LocalDateTime.now());
 
                 assertThatThrownBy(() -> useCase.execute(event))
@@ -249,8 +249,8 @@ class ProcessPaymentUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve lançar IllegalArgumentException quando orderId for nulo")
-            void deve_LancarIllegalArgumentException_Quando_OrderIdForNulo() {
+            @DisplayName("should throw IllegalArgumentException when orderId is null")
+            void shouldThrowIllegalArgumentException_When_OrderIdIsNull() {
                 var event = new OrderEvent(null, CLIENT_ID, TOTAL_AMOUNT, LocalDateTime.now());
 
                 assertThatThrownBy(() -> useCase.execute(event))
@@ -261,8 +261,8 @@ class ProcessPaymentUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve lançar IllegalArgumentException quando orderId for vazio")
-            void deve_LancarIllegalArgumentException_Quando_OrderIdForVazio() {
+            @DisplayName("should throw IllegalArgumentException when orderId is blank")
+            void shouldThrowIllegalArgumentException_When_OrderIdIsBlank() {
                 var event = new OrderEvent("", CLIENT_ID, TOTAL_AMOUNT, LocalDateTime.now());
 
                 assertThatThrownBy(() -> useCase.execute(event))
@@ -273,8 +273,8 @@ class ProcessPaymentUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve lançar NullPointerException quando event for nulo")
-            void deve_LancarNullPointerException_Quando_EventForNulo() {
+            @DisplayName("should throw NullPointerException when event is null")
+            void shouldThrowNullPointerException_When_EventIsNull() {
                 assertThatThrownBy(() -> useCase.execute(null))
                         .isInstanceOf(NullPointerException.class);
 
@@ -283,12 +283,12 @@ class ProcessPaymentUseCaseImplTest {
         }
 
         @Nested
-        @DisplayName("quando idempotência")
+        @DisplayName("when idempotency")
         class Idempotency {
 
             @Test
-            @DisplayName("deve ignorar evento duplicado quando pagamento já foi aprovado")
-            void deve_IgnorarEventoDuplicado_Quando_PagamentoJaAprovado() {
+            @DisplayName("should ignore duplicate event when payment is already approved")
+            void shouldIgnoreDuplicateEvent_When_PaymentAlreadyApproved() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID))
                         .thenReturn(Optional.of(approvedPayment));
 
@@ -301,12 +301,12 @@ class ProcessPaymentUseCaseImplTest {
         }
 
         @Nested
-        @DisplayName("quando erro externo ocorre")
+        @DisplayName("when external error occurs")
         class ExternalError {
 
             @Test
-            @DisplayName("deve manter como PENDING e publicar pagamento-pendente quando Procpag lançar PaymentProcessingException")
-            void deve_PublicarPagamentoPendente_Quando_ProcpagLancarPaymentProcessingException() {
+            @DisplayName("should keep as PENDING and publish pagamento-pendente when Procpag throws PaymentProcessingException")
+            void shouldPublishPendingPayment_When_ProcpagThrowsPaymentProcessingException() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
                 when(procPagGateway.processPayment(any(ProcPagRequest.class)))
                         .thenThrow(new PaymentProcessingException("Falha no processamento"));
@@ -323,8 +323,8 @@ class ProcessPaymentUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve manter como PENDING e publicar pagamento-pendente quando Procpag lançar ExternalServiceUnavailableException")
-            void deve_PublicarPagamentoPendente_Quando_ProcpagLancarExternalServiceUnavailableException() {
+            @DisplayName("should keep as PENDING and publish pagamento-pendente when Procpag throws ExternalServiceUnavailableException")
+            void shouldPublishPendingPayment_When_ProcpagThrowsExternalServiceUnavailableException() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
                 when(procPagGateway.processPayment(any(ProcPagRequest.class)))
                         .thenThrow(new ExternalServiceUnavailableException(
@@ -342,8 +342,8 @@ class ProcessPaymentUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve propagar exceção inesperada sem tratar quando Procpag lançar RuntimeException")
-            void deve_PropagarExcecaoInesperada_Quando_ProcpagLancarExcecaoGenerica() {
+            @DisplayName("should propagate unexpected exception without handling when Procpag throws RuntimeException")
+            void shouldPropagateUnexpectedException_When_ProcpagThrowsGenericException() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
                 when(procPagGateway.processPayment(any(ProcPagRequest.class)))
                         .thenThrow(new RuntimeException("Erro inesperado"));
@@ -358,8 +358,8 @@ class ProcessPaymentUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve engolir exceção da publicação quando handleFailure falhar ao publicar evento pendente")
-            void deve_EngolirExcecao_Quando_PublicacaoEventoPendenteFalhar() {
+            @DisplayName("should swallow publication exception when handleFailure fails to publish pending event")
+            void shouldSwallowException_When_PendingEventPublishingFails() {
                 when(paymentGateway.findPaymentByOrderId(ORDER_ID)).thenReturn(Optional.empty());
                 when(procPagGateway.processPayment(any(ProcPagRequest.class)))
                         .thenThrow(new PaymentProcessingException("Falha no processamento"));

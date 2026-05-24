@@ -21,8 +21,8 @@ class PaymentMapperTest {
     private final LocalDateTime now = LocalDateTime.now();
 
     @Test
-    @DisplayName("deve mapear PaymentEntity para Payment com todos os campos")
-    void deve_MapearEntityParaDomain() {
+    @DisplayName("should map PaymentEntity to Payment with all fields")
+    void shouldMapEntityToDomain() {
         var entity = new PaymentEntity(paymentId, "order-1", "client-1",
                 BigDecimal.valueOf(100), PaymentStatus.PENDING, 0, now, now);
 
@@ -39,8 +39,8 @@ class PaymentMapperTest {
     }
 
     @Test
-    @DisplayName("deve mapear Payment para PaymentEntity com todos os campos")
-    void deve_MapearDomainParaEntity() {
+    @DisplayName("should map Payment to PaymentEntity with all fields")
+    void shouldMapDomainToEntity() {
         var domain = Payment.builder()
                 .paymentId(paymentId)
                 .orderId("order-1")
@@ -65,22 +65,22 @@ class PaymentMapperTest {
     }
 
     @Test
-    @DisplayName("deve lançar NullPointerException quando entity for nula")
-    void deve_LancarNPE_Quando_EntityForNull() {
+    @DisplayName("should throw NullPointerException when entity is null")
+    void shouldThrowNPE_When_EntityIsNull() {
         assertThatThrownBy(() -> paymentMapper.toDomain(null))
                 .isInstanceOf(NullPointerException.class);
     }
 
     @Test
-    @DisplayName("deve lançar NullPointerException quando domain for nulo")
-    void deve_LancarNPE_Quando_DomainForNull() {
+    @DisplayName("should throw NullPointerException when domain is null")
+    void shouldThrowNPE_When_DomainIsNull() {
         assertThatThrownBy(() -> paymentMapper.toEntity(null))
                 .isInstanceOf(NullPointerException.class);
     }
 
     @Test
-    @DisplayName("deve mapear corretamente Payment com timestamps nulos")
-    void deve_MapearComTimestampsNulos() {
+    @DisplayName("should correctly map Payment with null timestamps")
+    void shouldMapWithNullTimestamps() {
         var entity = new PaymentEntity(paymentId, "order-1", "client-1",
                 BigDecimal.valueOf(100), PaymentStatus.PENDING, null, null, null);
 
@@ -91,8 +91,8 @@ class PaymentMapperTest {
     }
 
     @Test
-    @DisplayName("deve mapear PaymentEntity com createdAt nulo")
-    void deve_MapearComCreatedAtNulo() {
+    @DisplayName("should map PaymentEntity with null createdAt")
+    void shouldMapWithNullCreatedAt() {
         var entity = new PaymentEntity(UUID.randomUUID(), "order-1", "client-1",
                 BigDecimal.valueOf(100), PaymentStatus.PENDING, 0, null, null);
 

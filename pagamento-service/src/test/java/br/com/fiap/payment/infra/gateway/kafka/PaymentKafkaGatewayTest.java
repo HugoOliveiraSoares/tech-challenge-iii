@@ -118,7 +118,6 @@ class PaymentKafkaGatewayTest {
         Thread.interrupted();
     }
 
-    @SuppressWarnings("unchecked")
     private SendResult<String, PaymentEvent> mockSendResult(String topic, PaymentEvent event) {
         var serializer = new StringSerializer();
         var record = new ProducerRecord<>(topic, event.orderId(), event);

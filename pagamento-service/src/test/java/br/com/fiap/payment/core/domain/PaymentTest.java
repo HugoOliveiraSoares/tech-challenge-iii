@@ -26,7 +26,7 @@ class PaymentTest {
     }
 
     @Test
-    void changeStatusTo_dePendingParaApproved_deveFuncionar() {
+    void changeStatusTo_FromPendingToApproved_ShouldWork() {
         var payment = createPendingPayment();
 
         payment.changeStatusTo(PaymentStatus.APPROVED);
@@ -35,7 +35,7 @@ class PaymentTest {
     }
 
     @Test
-    void changeStatusTo_deApprovedParaPending_deveLancarExcecao() {
+    void changeStatusTo_FromApprovedToPending_ShouldThrowException() {
         var payment = createApprovedPayment();
 
         assertThatThrownBy(() -> payment.changeStatusTo(PaymentStatus.PENDING))
@@ -44,7 +44,7 @@ class PaymentTest {
     }
 
     @Test
-    void changeStatusTo_deApprovedParaApproved_deveLancarExcecao() {
+    void changeStatusTo_FromApprovedToApproved_ShouldThrowException() {
         var payment = createApprovedPayment();
 
         assertThatThrownBy(() -> payment.changeStatusTo(PaymentStatus.APPROVED))
@@ -53,7 +53,7 @@ class PaymentTest {
     }
 
     @Test
-    void changeStatusTo_dePendingParaPending_deveFuncionar() {
+    void changeStatusTo_FromPendingToPending_ShouldWork() {
         var payment = createPendingPayment();
 
         payment.changeStatusTo(PaymentStatus.PENDING);

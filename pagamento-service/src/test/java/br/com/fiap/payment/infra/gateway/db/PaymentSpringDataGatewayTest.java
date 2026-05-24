@@ -61,8 +61,8 @@ class PaymentSpringDataGatewayTest {
     }
 
     @Test
-    @DisplayName("deve retornar Payment mapeado quando findByOrderId encontrar entidade")
-    void deve_RetornarPayment_Quando_FindByOrderIdEncontrar() {
+    @DisplayName("should return mapped Payment when findByOrderId finds entity")
+    void shouldReturnPayment_When_FindByOrderIdFinds() {
         when(repository.findPaymentByOrderId(orderId)).thenReturn(Optional.of(entity));
 
         Optional<Payment> result = gateway.findPaymentByOrderId(orderId);
@@ -79,8 +79,8 @@ class PaymentSpringDataGatewayTest {
     }
 
     @Test
-    @DisplayName("deve retornar Optional.empty quando findByOrderId não encontrar entidade")
-    void deve_RetornarEmpty_Quando_FindByOrderIdNaoEncontrar() {
+    @DisplayName("should return Optional.empty when findByOrderId does not find entity")
+    void shouldReturnEmpty_When_FindByOrderIdNotFound() {
         when(repository.findPaymentByOrderId("order-inexistente"))
                 .thenReturn(Optional.empty());
 
@@ -91,8 +91,8 @@ class PaymentSpringDataGatewayTest {
     }
 
     @Test
-    @DisplayName("deve retornar Payment mapeado quando findByOrderIdAndApproved encontrar entidade")
-    void deve_RetornarPayment_Quando_FindByOrderIdAndApprovedEncontrar() {
+    @DisplayName("should return mapped Payment when findByOrderIdAndApproved finds entity")
+    void shouldReturnPayment_When_FindByOrderIdAndApprovedFinds() {
         when(repository.findPaymentByOrderIdAndPaymentStatus(orderId, PaymentStatus.APPROVED))
                 .thenReturn(Optional.of(entity));
 
@@ -105,8 +105,8 @@ class PaymentSpringDataGatewayTest {
     }
 
     @Test
-    @DisplayName("deve retornar Optional.empty quando findByOrderIdAndApproved não encontrar")
-    void deve_RetornarEmpty_Quando_FindByOrderIdAndApprovedNaoEncontrar() {
+    @DisplayName("should return Optional.empty when findByOrderIdAndApproved does not find")
+    void shouldReturnEmpty_When_FindByOrderIdAndApprovedNotFound() {
         when(repository.findPaymentByOrderIdAndPaymentStatus(orderId, PaymentStatus.APPROVED))
                 .thenReturn(Optional.empty());
 
@@ -117,8 +117,8 @@ class PaymentSpringDataGatewayTest {
     }
 
     @Test
-    @DisplayName("deve salvar entidade e retornar Payment mapeado")
-    void deve_SalvarERetornarPayment() {
+    @DisplayName("should save entity and return mapped Payment")
+    void shouldSaveAndReturnPayment() {
         when(repository.save(any(PaymentEntity.class))).thenReturn(entity);
 
         Payment result = gateway.save(domain);
@@ -130,8 +130,8 @@ class PaymentSpringDataGatewayTest {
     }
 
     @Test
-    @DisplayName("deve retornar lista de Payment mapeados quando findPendingPayments encontrar entidades")
-    void deve_RetornarListaPayment_Quando_FindPendingPaymentsEncontrar() {
+    @DisplayName("should return list of mapped Payments when findPendingPayments finds entities")
+    void shouldReturnPaymentList_When_FindPendingPaymentsFinds() {
         when(repository.findByPaymentStatusAndRetryCount(PaymentStatus.PENDING, 3))
                 .thenReturn(List.of(entity));
 
@@ -144,8 +144,8 @@ class PaymentSpringDataGatewayTest {
     }
 
     @Test
-    @DisplayName("deve retornar lista vazia quando findPendingPayments não encontrar entidades")
-    void deve_RetornarListaVazia_Quando_FindPendingPaymentsNaoEncontrar() {
+    @DisplayName("should return empty list when findPendingPayments finds no entities")
+    void shouldReturnEmptyList_When_FindPendingPaymentsNotFound() {
         when(repository.findByPaymentStatusAndRetryCount(PaymentStatus.PENDING, 3))
                 .thenReturn(Collections.emptyList());
 

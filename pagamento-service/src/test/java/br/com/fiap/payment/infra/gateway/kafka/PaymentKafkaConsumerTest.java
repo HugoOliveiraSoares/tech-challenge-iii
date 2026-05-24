@@ -33,8 +33,8 @@ class PaymentKafkaConsumerTest {
     private PaymentKafkaConsumer consumer;
 
     @Test
-    @DisplayName("deve executar use case e confirmar acknowledgment quando evento recebido")
-    void deve_ExecutarUseCaseEConfirmarAck() {
+    @DisplayName("should execute use case and acknowledge when event received")
+    void shouldExecuteUseCaseAndAcknowledge() {
         var event = new OrderEvent("order-1", "client-1", BigDecimal.TEN, LocalDateTime.now());
 
         consumer.consumeOrderEvent(event, ack);
@@ -44,8 +44,8 @@ class PaymentKafkaConsumerTest {
     }
 
     @Test
-    @DisplayName("deve propagar exceção sem chamar ack quando use case lançar exceção")
-    void deve_PropagarExcecao_Quando_UseCaseLancarExcecao() {
+    @DisplayName("should propagate exception without ack when use case throws exception")
+    void shouldPropagateException_When_UseCaseThrowsException() {
         doThrow(new RuntimeException("Erro inesperado"))
                 .when(processPaymentUseCase).execute(any());
 

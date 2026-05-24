@@ -108,12 +108,12 @@ class RetryPendingPaymentsUseCaseImplTest {
     class Execute {
 
         @Nested
-        @DisplayName("quando fluxo feliz")
+        @DisplayName("when happy path")
         class HappyPath {
 
             @Test
-            @DisplayName("deve reprocessar pagamento PENDING e aprovar quando Procpag retornar ACCEPTED")
-            void deve_AprovarPagamento_Quando_ProcpagRetornarAccepted() {
+            @DisplayName("should reprocess PENDING payment and approve when Procpag returns ACCEPTED")
+            void shouldApprovePayment_When_ProcpagReturnsAccepted() {
                 when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment));
                 when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
@@ -134,8 +134,8 @@ class RetryPendingPaymentsUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve manter como PENDING quando Procpag retornar PENDING")
-            void deve_ManterComoPendente_Quando_ProcpagRetornarPending() {
+            @DisplayName("should keep as PENDING when Procpag returns PENDING")
+            void shouldKeepPending_When_ProcpagReturnsPending() {
                 when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment));
                 when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("PENDING");
@@ -152,8 +152,8 @@ class RetryPendingPaymentsUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve passar dados corretos para o Procpag")
-            void deve_PassarDadosCorretosParaProcpag() {
+            @DisplayName("should pass correct data to Procpag")
+            void shouldPassCorrectDataToProcpag() {
                 when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment));
                 when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
@@ -169,8 +169,8 @@ class RetryPendingPaymentsUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve tratar status desconhecido como PENDING")
-            void deve_TratarComoPendente_Quando_ProcpagRetornarStatusDesconhecido() {
+            @DisplayName("should treat unknown status as PENDING")
+            void shouldTreatAsPending_When_ProcpagReturnsUnknownStatus() {
                 when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment));
                 when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("REJECTED");
@@ -187,8 +187,8 @@ class RetryPendingPaymentsUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve reprocessar multiplos pagamentos pendentes")
-            void deve_ReprocessarMultiplosPagamentos() {
+            @DisplayName("should reprocess multiple pending payments")
+            void shouldReprocessMultiplePayments() {
                 var payment2 = Payment.builder()
                         .paymentId(UUID.randomUUID())
                         .orderId("order-789")
@@ -213,12 +213,12 @@ class RetryPendingPaymentsUseCaseImplTest {
         }
 
         @Nested
-        @DisplayName("quando nao ha pagamentos pendentes")
+        @DisplayName("when no pending payments")
         class NoPendingPayments {
 
             @Test
-            @DisplayName("nao deve fazer nada quando nao houver pagamentos pendentes")
-            void nao_DeveFazerNada_Quando_NaoHouverPagamentosPendentes() {
+            @DisplayName("should do nothing when there are no pending payments")
+            void shouldDoNothing_When_NoPendingPayments() {
                 when(paymentGateway.findPendingPayments())
                         .thenReturn(Collections.emptyList());
 
@@ -230,12 +230,12 @@ class RetryPendingPaymentsUseCaseImplTest {
         }
 
         @Nested
-        @DisplayName("quando limite de tentativas (guard clauses removidas)")
+        @DisplayName("when retry limit (guard clauses removed)")
         class RetryLimit {
 
             @Test
-            @DisplayName("deve processar pagamento com retryCount excedido (guard clause removida)")
-            void deve_Processar_Quando_RetryCountExcederLimite() {
+            @DisplayName("should process payment with exceeded retryCount (guard clause removed)")
+            void shouldProcess_When_RetryCountExceedsLimit() {
                 when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(exhaustedPayment));
                 when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
@@ -253,8 +253,8 @@ class RetryPendingPaymentsUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve falhar ao processar APPROVED (changeStatusTo bloqueia transicao)")
-            void deve_Falhar_Quando_PagamentoJaAprovado() {
+            @DisplayName("should fail to process APPROVED (changeStatusTo blocks transition)")
+            void shouldFail_When_PaymentAlreadyApproved() {
                 when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(approvedPayment));
                 when(procPagGateway.processPayment(any(ProcPagRequest.class))).thenReturn("ACCEPTED");
@@ -268,12 +268,12 @@ class RetryPendingPaymentsUseCaseImplTest {
         }
 
         @Nested
-        @DisplayName("quando erro externo ocorre")
+        @DisplayName("when external error occurs")
         class ExternalError {
 
             @Test
-            @DisplayName("deve incrementar retryCount e publicar pagamento-pendente quando Procpag lancar PaymentProcessingException")
-            void deve_IncrementarRetry_Quando_ProcpagLancarPaymentProcessingException() {
+            @DisplayName("should increment retryCount and publish pagamento-pendente when Procpag throws PaymentProcessingException")
+            void shouldIncrementRetry_When_ProcpagThrowsPaymentProcessingException() {
                 when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment));
                 when(procPagGateway.processPayment(any(ProcPagRequest.class)))
@@ -291,8 +291,8 @@ class RetryPendingPaymentsUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve incrementar retryCount e publicar pagamento-pendente quando Procpag lancar ExternalServiceUnavailableException")
-            void deve_IncrementarRetry_Quando_ProcpagLancarExternalServiceUnavailableException() {
+            @DisplayName("should increment retryCount and publish pagamento-pendente when Procpag throws ExternalServiceUnavailableException")
+            void shouldIncrementRetry_When_ProcpagThrowsExternalServiceUnavailableException() {
                 when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment));
                 when(procPagGateway.processPayment(any(ProcPagRequest.class)))
@@ -311,8 +311,8 @@ class RetryPendingPaymentsUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve engolir excecao da publicacao do evento pendente")
-            void deve_EngolirExcecao_Quando_PublicacaoEventoFalhar() {
+            @DisplayName("should swallow exception from pending event publication")
+            void shouldSwallowException_When_PendingEventPublishingFails() {
                 when(paymentGateway.findPendingPayments())
                         .thenReturn(List.of(pendingPayment));
                 when(procPagGateway.processPayment(any(ProcPagRequest.class)))
@@ -331,8 +331,8 @@ class RetryPendingPaymentsUseCaseImplTest {
             }
 
             @Test
-            @DisplayName("deve continuar processando outros pagamentos quando um falhar com excecao inesperada")
-            void deve_Continuar_Quando_UmPagamentoLancarExcecaoInesperada() {
+            @DisplayName("should continue processing other payments when one fails with unexpected exception")
+            void shouldContinue_When_OnePaymentThrowsUnexpectedException() {
                 var validPayment = Payment.builder()
                         .paymentId(UUID.randomUUID())
                         .orderId("order-valid")
