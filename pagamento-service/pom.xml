@@ -41,7 +41,7 @@
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
+            <artifactId>flyway-br.com.fiap.order.core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>

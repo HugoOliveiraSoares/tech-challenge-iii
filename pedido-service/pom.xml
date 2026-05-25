@@ -12,6 +12,7 @@
 
     <artifactId>pedido-service</artifactId>
     <name>pedido-service</name>
+    <!-- Microsserviço de pedidos: REST + JPA + Kafka + OAuth2 Resource Server -->
 
     <dependencies>
         <dependency>

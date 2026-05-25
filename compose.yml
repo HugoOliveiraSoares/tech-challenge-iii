@@ -28,6 +28,55 @@ services:
     networks:
       - fase3net
 
+  pedido-service:
+    build:
+      context: .
+      dockerfile: pedido-service/Dockerfile
+    container_name: pedido-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      pedido-db:
+        condition: service_healthy
+      kafka-setup:
+        condition: service_completed_successfully
+      auth-service:
+        condition: service_started
+    environment:
+      DB_HOST: pedido-db
+      DB_PORT: 5432
+      DB_USER: pedidodb
+      DB_PASSWORD: pedidodb
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_JWK_SET_URI: http://auth-service:8081/.well-known/jwks.json
+      API_PROBLEMS_BASE_URI: http://localhost:8082/problems
+    networks:
+      - fase3net
+
+  pagamento-service:
+    build:
+      context: .
+      dockerfile: pagamento-service/Dockerfile
+    container_name: pagamento-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      pagamento-db:
+        condition: service_healthy
+      kafka-setup:
+        condition: service_completed_successfully
+      procpag:
+        condition: service_started
+    environment:
+      DB_HOST: pagamento-db
+      DB_PORT: 5432
+      DB_USER: pagamentodb
+      DB_PASS: pagamentodb
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      PROCPAG_HOST: procpag
+    networks:
+      - fase3net
+
   procpag:
     image: docker.io/erickemprobr/procpag:latest
     platform: linux/amd64
