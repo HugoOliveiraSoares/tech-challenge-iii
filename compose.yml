@@ -9,6 +9,25 @@ x-postgres: &postgres-base
     - fase3net
 
 services:
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    environment:
+      DB_HOST: auth-db
+      DB_PORT: 5432
+      DB_USER: authdb
+      DB_PASSWORD: authdb
+      JWT_ISSUER: http://auth-service:8081
+    networks:
+      - fase3net
+
   procpag:
     image: docker.io/erickemprobr/procpag:latest
     platform: linux/amd64

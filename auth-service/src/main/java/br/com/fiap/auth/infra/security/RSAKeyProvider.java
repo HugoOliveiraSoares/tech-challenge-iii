@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -39,8 +39,8 @@ public class RSAKeyProvider {
     }
 
     private RSAPublicKey loadPublicKey() throws Exception {
-        var key = Files.readString(publicKeyResource.getFile().toPath(),
-                StandardCharsets.UTF_8);
+        var key = readResource(publicKeyResource);
+
         key = key
                 .replace("-----BEGIN PUBLIC KEY-----", "")
                 .replace("-----END PUBLIC KEY-----", "")
@@ -54,8 +54,7 @@ public class RSAKeyProvider {
     }
 
     private RSAPrivateKey loadPrivateKey() throws Exception {
-        var key = Files.readString(privateKeyResource.getFile().toPath(),
-                StandardCharsets.UTF_8);
+        var key = readResource(privateKeyResource);
         key = key
                 .replace("-----BEGIN PRIVATE KEY-----", "")
                 .replace("-----END PRIVATE KEY-----", "")
@@ -66,5 +65,14 @@ public class RSAKeyProvider {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
         return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
+    }
+
+    private String readResource(Resource resource) throws Exception {
+        try(InputStream inputStream = resource.getInputStream()){
+            return new String(
+                    inputStream.readAllBytes(),
+                    StandardCharsets.UTF_8
+            );
+        }
     }
 }
