@@ -49,6 +49,7 @@ services:
       DB_PASSWORD: pedidodb
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       JWT_JWK_SET_URI: http://auth-service:8081/.well-known/jwks.json
+      API_PROBLEMS_BASE_URI: http://localhost:8082/problems
     networks:
       - fase3net
 

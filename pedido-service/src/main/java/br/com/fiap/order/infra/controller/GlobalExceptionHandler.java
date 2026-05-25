@@ -1,6 +1,7 @@
 package br.com.fiap.order.infra.controller;
 
 import br.com.fiap.order.core.exception.SystemBaseException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
@@ -22,14 +23,20 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    private static final String VALIDATION_ERROR_ID = "validation-error";
+    private static final String INTERNAL_SERVER_ERROR_ID = "internal-server-error";
+
+    @Value("${api.problems.base-uri:http://localhost:8082/problems}")
+    private String problemsBaseUri;
+
     @ExceptionHandler(SystemBaseException.class)
     protected ResponseEntity<ProblemDetail> handleSystemBaseException(SystemBaseException ex, WebRequest request) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatusCode.valueOf(ex.getStatus()), ex.getMessage()
         );
-        problemDetail.setType(URI.create("https://api.example.com/errors/" + ex.getCode()));
+        problemDetail.setType(problemTypeUri(ex.getCode()));
         problemDetail.setTitle(ex.getCode());
-        problemDetail.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
+        problemDetail.setInstance(requestInstanceUri(request));
         problemDetail.setProperty("code", ex.getCode());
         problemDetail.setProperty("timestamp", Instant.now().toString());
 
@@ -41,9 +48,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred"
         );
-        problemDetail.setType(URI.create("https://api.example.com/errors/internal-server-error"));
+        problemDetail.setType(problemTypeUri(INTERNAL_SERVER_ERROR_ID));
         problemDetail.setTitle("Internal Server Error");
-        problemDetail.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
+        problemDetail.setInstance(requestInstanceUri(request));
         problemDetail.setProperty("code", "internal.server.error");
         problemDetail.setProperty("timestamp", Instant.now().toString());
 
@@ -67,12 +74,25 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST, "Validation Failed"
         );
-        problemDetail.setType(URI.create("https://api.example.com/errors/validation-error"));
+        problemDetail.setType(problemTypeUri(VALIDATION_ERROR_ID));
         problemDetail.setTitle("Validation Error");
-        problemDetail.setInstance(URI.create(request.getDescription(false).replace("uri=", "")));
+        problemDetail.setInstance(requestInstanceUri(request));
         problemDetail.setProperty("errors", invalidParams);
         problemDetail.setProperty("timestamp", Instant.now().toString());
 
         return new ResponseEntity<>(problemDetail, HttpStatus.BAD_REQUEST);
+    }
+
+    /** URI do tipo de problema (RFC 7807 `type`), configurável via api.problems.base-uri. */
+    private URI problemTypeUri(String problemId) {
+        String base = problemsBaseUri.endsWith("/")
+                ? problemsBaseUri.substring(0, problemsBaseUri.length() - 1)
+                : problemsBaseUri;
+        return URI.create(base + "/" + problemId);
+    }
+
+    /** URI da requisição que gerou o erro (RFC 7807 `instance`). */
+    private URI requestInstanceUri(WebRequest request) {
+        return URI.create(request.getDescription(false).replace("uri=", ""));
     }
 }
