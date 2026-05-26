@@ -4,7 +4,7 @@
 
 ### Autenticação
 
-#### POST /auth/cadastro
+#### POST /auth/register
 
 Cria um novo usuário.
 
@@ -23,7 +23,7 @@ Cria um novo usuário.
 
 ```json
 {
-  "userId": "uuid-gerado"
+  "id": "uuid-gerado"
 }
 ```
 

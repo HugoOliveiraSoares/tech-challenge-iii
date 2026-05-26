@@ -8,9 +8,9 @@ sequenceDiagram
     participant Auth as auth-service
     participant DB as users DB
 
-    U->>Auth: POST /auth/cadastro<br/>{nome, email, senha, role}
+    U->>Auth: POST /auth/register<br/>{nome, email, senha, role}
     Auth->>DB: salva usuário com role
-    Auth-->>U: 201 Created {userId}
+    Auth-->>U: 201 Created {id}
 
     U->>Auth: POST /auth/login<br/>{email, senha}
     Auth->>DB: valida credenciais
