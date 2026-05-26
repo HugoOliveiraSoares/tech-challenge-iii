@@ -1,7 +1,5 @@
 package br.com.fiap.payment.core.usecase.impl;
 
-import org.springframework.stereotype.Service;
-
 import br.com.fiap.payment.core.domain.Payment;
 import br.com.fiap.payment.core.domain.PaymentMapperUtil;
 import br.com.fiap.payment.core.domain.PaymentStatus;
@@ -16,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Service
 @RequiredArgsConstructor
 public class RetryPendingPaymentsUseCaseImpl implements RetryPendingPaymentsUseCase {
 

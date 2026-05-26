@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-
 import br.com.fiap.payment.core.domain.OrderEvent;
 import br.com.fiap.payment.core.domain.Payment;
 import br.com.fiap.payment.core.domain.PaymentMapperUtil;
@@ -26,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
  * publicação de eventos.
  */
 @Slf4j
-@Service
 @RequiredArgsConstructor
 public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
     private final PaymentGateway paymentGateway;
