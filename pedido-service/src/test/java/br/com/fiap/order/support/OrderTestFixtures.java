@@ -8,6 +8,7 @@ import br.com.fiap.order.infra.gateway.db.entity.OrderItemEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,13 +54,13 @@ public final class OrderTestFixtures {
         entity.setStatus(status);
         entity.setCreatedAt(CREATED_AT);
         entity.setUpdatedAt(CREATED_AT);
-        entity.setItems(List.of(new OrderItemEntity(
+        entity.setItems(new ArrayList<>(List.of(new OrderItemEntity(
                 1L,
                 ORDER_ID,
                 1L,
                 "X-Burger",
                 2,
-                BigDecimal.valueOf(25.90))));
+                BigDecimal.valueOf(25.90)))));
         return entity;
     }
 }
