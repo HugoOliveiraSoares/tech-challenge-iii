@@ -1,10 +1,15 @@
-# Estágio 1: compila o módulo pedido-service e dependências do parent
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
-COPY . .
+
+COPY pom.xml .
+COPY auth-service/pom.xml auth-service/pom.xml
+COPY pedido-service/pom.xml pedido-service/pom.xml
+COPY pagamento-service/pom.xml pagamento-service/pom.xml
+RUN mvn dependency:resolve-plugins dependency:go-offline -pl pedido-service -am
+
+COPY pedido-service/src pedido-service/src
 RUN mvn clean package -pl pedido-service -am -DskipTests
 
-# Estágio 2: imagem enxuta só com o JAR
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=build /app/pedido-service/target/*.jar app.jar
