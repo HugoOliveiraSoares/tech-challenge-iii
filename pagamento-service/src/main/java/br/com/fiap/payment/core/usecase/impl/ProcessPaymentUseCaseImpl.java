@@ -44,10 +44,11 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
 
         validateEvent(event);
 
-        var payment = resolvePayment(event);
-        if (payment == null) {
+        var paymentOptional = resolvePayment(event);
+        if (paymentOptional.isEmpty()) {
             return;
         }
+        var payment = paymentOptional.get();
 
         log.info("Processando pagamento de pedido {}", event.orderId());
 
@@ -82,21 +83,21 @@ public class ProcessPaymentUseCaseImpl implements ProcessPaymentUseCase {
         }
     }
 
-    private Payment resolvePayment(OrderEvent event) {
+    private Optional<Payment> resolvePayment(OrderEvent event) {
         Optional<Payment> existing = paymentGateway.findPaymentByOrderId(event.orderId());
         if (existing.isEmpty()) {
-            return Payment.createPending(
+            return Optional.of(Payment.createPending(
                     event.orderId(),
                     event.clientId(),
-                    event.totalAmount());
+                    event.totalAmount()));
         }
         Payment payment = existing.get();
         if (payment.getPaymentStatus() == PaymentStatus.APPROVED) {
             log.warn("Pedido {} já foi aprovado. Ignorando evento duplicado.", event.orderId());
-            return null;
+            return Optional.empty();
         }
         log.info("Re-processando pagamento pendente do pedido {}", event.orderId());
-        return payment;
+        return Optional.of(payment);
     }
 
     private void validateEvent(OrderEvent event) {
