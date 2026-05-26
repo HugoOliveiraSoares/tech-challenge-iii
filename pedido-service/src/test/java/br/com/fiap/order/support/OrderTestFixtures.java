@@ -54,13 +54,9 @@ public final class OrderTestFixtures {
         entity.setStatus(status);
         entity.setCreatedAt(CREATED_AT);
         entity.setUpdatedAt(CREATED_AT);
-        entity.setItems(new ArrayList<>(List.of(new OrderItemEntity(
-                1L,
-                ORDER_ID,
-                1L,
-                "X-Burger",
-                2,
-                BigDecimal.valueOf(25.90)))));
+        OrderItemEntity itemEntity = new OrderItemEntity(1L, "X-Burger", 2, BigDecimal.valueOf(25.90));
+        itemEntity.setId(1L);
+        entity.setItems(new ArrayList<>(List.of(itemEntity)));
         return entity;
     }
 }

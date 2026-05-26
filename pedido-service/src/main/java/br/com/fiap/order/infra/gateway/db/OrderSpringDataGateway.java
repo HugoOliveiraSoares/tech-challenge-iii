@@ -47,15 +47,13 @@ public class OrderSpringDataGateway implements OrderGateway {
         existing.setStatus(order.getStatus());
         existing.setTotalAmount(order.getTotalAmount());
         existing.getItems().clear();
-        existing.getItems().addAll(mapItemEntities(order.getItems()));
+        mapItemEntities(order.getItems()).forEach(existing::addItem);
         return existing;
     }
 
     private List<OrderItemEntity> mapItemEntities(List<br.com.fiap.order.core.domain.OrderItem> items) {
         return items.stream()
                 .map(item -> new OrderItemEntity(
-                        null,
-                        null,
                         item.getProductId(),
                         item.getName(),
                         item.getQuantity(),

@@ -34,7 +34,7 @@ public class OrderMapper {
         entity.setStatus(domain.getStatus());
         entity.setCreatedAt(domain.getCreatedAt());
         entity.setUpdatedAt(domain.getCreatedAt());
-        entity.setItems(mapItemEntities(domain.getItems()));
+        mapItemEntities(domain.getItems()).forEach(entity::addItem);
         return entity;
     }
 
@@ -51,8 +51,6 @@ public class OrderMapper {
     private List<OrderItemEntity> mapItemEntities(List<OrderItem> items) {
         return items.stream()
                 .map(item -> new OrderItemEntity(
-                        null,
-                        null,
                         item.getProductId(),
                         item.getName(),
                         item.getQuantity(),
