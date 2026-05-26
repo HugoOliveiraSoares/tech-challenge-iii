@@ -71,7 +71,7 @@ services:
       DB_HOST: pagamento-db
       DB_PORT: 5432
       DB_USER: pagamentodb
-      DB_PASS: pagamentodb
+      DB_PASSWORD: pagamentodb
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       PROCPAG_HOST: procpag
     networks:
