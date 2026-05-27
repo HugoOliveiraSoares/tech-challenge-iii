@@ -1,0 +1,113 @@
+{
+  "info": {
+    "_postman_id": "f3642085-6aca-4f02-9df1-411b8edf6652",
+    "name": "Tech Challenge III",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "39440665"
+  },
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "POST create user",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"Matheus Oliveira\",\r\n    \"email\": \"matheus.oli@email.com\",\r\n    \"password\": \"senha123\",\r\n    \"role\": \"OWNER\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/auth/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST validate login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"ana2@email.com\",\r\n    \"password\": \"senha123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET me",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJjYTA3ZWIwMy1hN2FiLTQwYjgtOTI1Zi0zY2U3MTI2ZmUxNzUiLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODEiLCJpYXQiOjE3Nzg1MjE5NDUsImV4cCI6MTc3ODYwODM0NSwicm9sZSI6Ik9XTkVSIn0.MHz4aMS8Up1MdUEMbKvi50GmRplWYXIzwTUBqfULNdRTyn2eO3C1Gd6qnwRjJtOfHAk5dG6mNzIlxVbT36Fy-Zp7OHW1N4RKQs2NWx8aVpPBFKLP_CQ4un3khxgCdv9ZKik0aTIDMdqqJ4A0UuzJkmDbTtmdgxk-sj2xfjNbUpGviwDY6KJ59W3-ITiOPX_v0ohKr84OlGvnY1bAMjCIXGTfxSmC6PxNnptTp2zVfZBsrm7CYttm0CPLAxIH1zqOrn5ondM3vXStknjYM25nPQirlYwKAdKTD07v6uuvNbWRnZAp4f6zf3jnJVgnHTivfky2_VVtpfl9gkTxEJ4nRg",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://localhost:8081/auth/me",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
