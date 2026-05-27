@@ -24,6 +24,10 @@ Este projeto implementa um sistema de pedidos online para um restaurante, permit
 | pagamento-service | 8083 | Comunicação com serviço externo de pagamento |
 | procpag | 8089 | Serviço externo de processamento de pagamentos |
 
+A collection para o postman se encontra na raiz do projeto
+
+[collection](TechChallengeIII.postman_collection.json)
+
 ## Tecnologias
 
 - **Java 21+** com Spring Boot
