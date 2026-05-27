@@ -19,9 +19,9 @@ import java.util.Base64;
 @Getter
 public class RSAKeyProvider {
 
-    @Value("classpath:keys/app.pub")
+    @Value("${jwt.public-key-location:classpath:keys/app.pub}")
     private Resource publicKeyResource;
-    @Value("classpath:keys/app.key")
+    @Value("${jwt.private-key-location:classpath:keys/app.key}")
     private Resource privateKeyResource;
 
     private RSAPublicKey publicKey;
